@@ -1,0 +1,4 @@
+node_modules
+dist
+# ngrok binary downloaded by the npm package
+.ngrok
