@@ -175,19 +175,17 @@ onMounted(async () => {
   to { opacity: .9; }
 }
 
-/* Character art — scaled to 70%, starts at the top bar's bottom edge, and
-   shows the full image uncropped (object-fit: contain). Slid slightly to the
-   left so the pilot sits clear of the dossier panel and reads as breaking out
-   of frame */
+/* Character art — full size (100% of the pinned area), centered on screen,
+   and fully visible (object-fit: contain — never cropped). Starts at the top
+   bar's bottom edge */
 .cs-art {
   position: absolute;
   inset: 0;
   z-index: 2;
-  transform: translateX(-26px);
 }
 .cs-art img {
-  width: 70%;
-  height: 70%;
+  width: 100%;
+  height: 100%;
   object-fit: contain; /* no cropping — full image visible */
   object-position: center;
 }
@@ -491,30 +489,11 @@ onMounted(async () => {
   box-shadow: 0 -12px 40px rgba(0,0,0,.55);
 }
 
-/* ── Narrow layouts: roster strip on top, compact dossier ── */
+/* ── Narrow layouts: sidebar stays vertical on the left (no horizontal
+   scroll strip); dossier and caption compact to fit ── */
 @media (max-width: 700px) {
-  .cs-side {
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: auto;
-    width: auto;
-    height: 88px;
-    flex-direction: row;
-    gap: 8px;
-    padding: 8px 10px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border-right: none;
-    border-bottom: 1px solid var(--z-border-muted, rgba(168,85,247,.1));
-    background: rgba(0,0,0,.45);
-  }
-  .cs-char { flex-shrink: 0; }
-  .cs-avatar { width: 52px; height: 52px; }
-  .cs-name { font-size: 7.5px; }
   .cs-dossier { width: 168px; top: 10px; right: 10px; bottom: 10px; }
   .cs-name-big { font-size: clamp(26px, 8vw, 38px); }
-  .cs-caption { left: 16px; max-width: 52%; }
-  .cs-art { transform: translateX(-16px); }
+  .cs-caption { left: 134px; max-width: 24%; }
 }
 </style>
