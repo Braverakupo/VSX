@@ -380,11 +380,19 @@ onBeforeUnmount(() => {
 }
 
 /* ── Select UI overlay — absolutely positioned over the pinned art area, so
-   it consumes no flow space and scrolls away while the art stays pinned ── */
+   it consumes no flow space and scrolls away while the art stays pinned ──
+   pointer-events: none so drags pass through to the art layer beneath;
+   only the three panels (sidebar / caption / dossier) stay interactive ── */
 .cs-ui {
   position: absolute;
   inset: 0;
   z-index: 2;
+  pointer-events: none;
+}
+.cs-ui > .cs-side,
+.cs-ui > .cs-caption,
+.cs-ui > .cs-dossier {
+  pointer-events: auto;
 }
 
 /* ── Roster Sidebar (left) ── */
