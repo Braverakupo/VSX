@@ -175,9 +175,10 @@ onMounted(async () => {
   to { opacity: .9; }
 }
 
-/* Character art — scaled to 70% and started below the top navigation bar so
-   the pilot's head reads clear of the nav. Slid slightly to the left so the
-   pilot sits clear of the dossier panel and reads as breaking out of frame */
+/* Character art — scaled to 70%, starts at the top bar's bottom edge, and
+   shows the full image uncropped (object-fit: contain). Slid slightly to the
+   left so the pilot sits clear of the dossier panel and reads as breaking out
+   of frame */
 .cs-art {
   position: absolute;
   inset: 0;
@@ -187,9 +188,8 @@ onMounted(async () => {
 .cs-art img {
   width: 70%;
   height: 70%;
-  margin-top: 64px; /* start below the top navigation bar */
-  object-fit: cover;
-  object-position: center 16%;
+  object-fit: contain; /* no cropping — full image visible */
+  object-position: center;
 }
 
 /* Swirling themed glow — over the character layer for depth */
