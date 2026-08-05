@@ -5,7 +5,7 @@
 // Layout: the large character art is PINNED (sticky) and does not scroll with
 // the page. The select UI (roster sidebar, caption, dossier) scrolls over it,
 // and ALL lore lives below the characters screen — scroll down to read it.
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { charTemplates, heroThemes, localImages } from '../config/gameData'
 import { CHAR_LORE } from '../config/loreData'
 import { JOB_MEDAL_DEFS } from '../config/jobMedalData'
@@ -34,8 +34,88 @@ const SHORT_ROLES: Record<string, string> = {
   Kailin: 'Assassin · Knight-Errant'
 }
 
-// Large waist-up hero render (any asset for now — the standalone character JPGs)
-const heroArt = computed(() => BASE + 'assets/' + selected.value + '.jpg')
+// Character art: left half of the hero's bar images, cycled with arrow keys
+const barIndex = ref(0)
+const bars = computed(() => localImages[selected.value]?.bars ?? [])
+const heroArt = computed(() => BASE + (bars.value[barIndex.value] ?? 'assets/' + selected.value + '.jpg'))
+
+function cycleBar(dir: number) {
+  const n = bars.value.length
+  if (!n) return
+  barIndex.value = (barIndex.value + dir + n) % n
+}
+
+// ── Drag-to-scrub: drag horizontally on the art (or the slider) to flip
+//    through the bar images when testing which one looks best ──
+let artScrub = false
+let artStartX = 0
+let artStartIdx = 0
+function artDown(e: PointerEvent) {
+  if (!bars.value.length) return
+  artScrub = true
+  artStartX = e.clientX
+  artStartIdx = barIndex.value
+  ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  e.preventDefault()
+}
+function artMove(e: PointerEvent) {
+  if (!artScrub) return
+  const n = bars.value.length
+  if (!n) return
+  const w = (e.currentTarget as HTMLElement).clientWidth || 1
+  const delta = Math.round(((e.clientX - artStartX) / w) * n)
+  barIndex.value = (artStartIdx + delta + n) % n
+}
+function artUp() {
+  artScrub = false
+}
+
+// Scrub slider: click or drag anywhere on the track to seek a pose
+let sliderDown = false
+function sliderDownHandler(e: PointerEvent) {
+  sliderDown = true
+  sliderSeek(e)
+}
+function sliderMove(e: PointerEvent) {
+  if (sliderDown) sliderSeek(e)
+}
+function sliderUp() {
+  sliderDown = false
+}
+function sliderSeek(e: PointerEvent) {
+  const n = bars.value.length
+  if (!n) return
+  const el = e.currentTarget as HTMLElement
+  el.setPointerCapture(e.pointerId)
+  const rect = el.getBoundingClientRect()
+  const t = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))
+  barIndex.value = Math.round(t * (n - 1))
+}
+
+// ── Copy the current art path to the clipboard ──
+const copied = ref(false)
+let copyTimer: number | undefined
+function copyPath() {
+  const path = bars.value[barIndex.value] ?? 'assets/' + selected.value + '.jpg'
+  const done = () => {
+    copied.value = true
+    window.clearTimeout(copyTimer)
+    copyTimer = window.setTimeout(() => (copied.value = false), 1400)
+  }
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(path).then(done).catch(done)
+  } else {
+    const ta = document.createElement('textarea')
+    ta.value = path
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    try { document.execCommand('copy') } catch { /* ignore */ }
+    document.body.removeChild(ta)
+    done()
+  }
+}
 const lore = computed(() => CHAR_LORE[selected.value])
 // Dossier medal grid: 3 rows × 3 columns of Job Medals + titles
 const medals = computed(() => (JOB_MEDAL_DEFS[selected.value] || []).slice(0, 9))
@@ -45,11 +125,38 @@ function portraitFor(hero: string): string {
   return portraits && portraits.length ? portraits[0] : ''
 }
 
-function selectHero(hero: string) {
+function selectHero(hero: string, resetBar = true) {
   if (selected.value === hero) return
   selected.value = hero
+  if (resetBar) barIndex.value = 0
   emit('select', hero)
   nextTick(() => applyTheme(rootRef.value, hero))
+}
+
+function onKey(e: KeyboardEvent) {
+  const t = e.target as HTMLElement | null
+  if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return
+  switch (e.key) {
+    case 'ArrowLeft':
+      cycleBar(-1)
+      e.preventDefault()
+      break
+    case 'ArrowRight':
+      cycleBar(1)
+      e.preventDefault()
+      break
+    case 'ArrowUp':
+    case 'ArrowDown':
+      // Up/Down cycles heroes, but only at the top of the page so the lore
+      // below the select screen still scrolls with the arrow keys
+      if (rootRef.value && rootRef.value.scrollTop === 0) {
+        const i = heroList.indexOf(selected.value)
+        const next = heroList[(i + (e.key === 'ArrowDown' ? 1 : -1) + heroList.length) % heroList.length]
+        selectHero(next)
+        e.preventDefault()
+      }
+      break
+  }
 }
 
 function hideImg(e: Event) {
@@ -61,6 +168,11 @@ onMounted(async () => {
   await nextTick()
   applyTheme(rootRef.value, selected.value)
   emit('select', selected.value)
+  window.addEventListener('keydown', onKey)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKey)
 })
 </script>
 
@@ -68,7 +180,7 @@ onMounted(async () => {
   <div ref="rootRef" class="cs-page">
     <!-- ══ Pinned character art — never scrolls with the page ══ -->
     <div class="cs-pin">
-      <div class="cs-art">
+      <div class="cs-art" @pointerdown="artDown" @pointermove="artMove" @pointerup="artUp" @pointercancel="artUp">
         <img :src="heroArt" :alt="selected + ' render'" @error="hideImg" />
       </div>
       <div class="cs-swirl"></div>
@@ -98,6 +210,30 @@ onMounted(async () => {
           <div class="cs-kicker">PILOT PROFILE</div>
           <div class="cs-name-big">{{ selected }}</div>
           <div class="cs-role">{{ SHORT_ROLES[selected] }}</div>
+          <div class="cs-nav">
+            <span class="cs-nav-keys">◀ ▶</span>
+            <span class="cs-nav-label">POSE {{ barIndex + 1 }}/{{ bars.length || 1 }}</span>
+            <span class="cs-nav-keys">▲ ▼</span>
+            <span class="cs-nav-label">HERO</span>
+          </div>
+          <div class="cs-scrub">
+            <div
+              class="cs-scrub-track"
+              title="Drag to scrub through the bar images"
+              @pointerdown="sliderDownHandler"
+              @pointermove="sliderMove"
+              @pointerup="sliderUp"
+              @pointercancel="sliderUp"
+            >
+              <div
+                class="cs-scrub-fill"
+                :style="{ width: bars.length ? ((barIndex + 1) / bars.length) * 100 + '%' : '0%' }"
+              ></div>
+            </div>
+            <button class="cs-copy" type="button" :title="heroArt" @click="copyPath">
+              {{ copied ? 'COPIED ✓' : 'COPY' }}
+            </button>
+          </div>
         </div>
 
         <!-- Dossier & Stats Panel (right) -->
@@ -189,12 +325,16 @@ onMounted(async () => {
   position: absolute;
   inset: 0;
   z-index: 2;
+  cursor: ew-resize;
+  touch-action: pan-y; /* vertical page scroll still works on touch */
 }
 .cs-art img {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* no cropping — full image visible */
-  object-position: center;
+  object-fit: cover;
+  /* Left portion of the wide bar art: anchored toward the left so the
+     character (left 50% of the 1376×768 bars) fills the screen */
+  object-position: 15% center;
 }
 
 /* Readability scrim */
@@ -326,6 +466,80 @@ onMounted(async () => {
   color: var(--hero-color, #3b82f6);
   text-shadow: 0 0 10px var(--hero-glow, rgba(59,130,246,.55));
   margin-top: 2px;
+}
+/* Arrow-key navigation hint under the pilot caption */
+.cs-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 8px;
+}
+.cs-nav-keys {
+  font-family: var(--z-font-mono, monospace);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--hero-bright, #93c5fd);
+  text-shadow: 0 0 8px var(--hero-glow, rgba(59,130,246,.5));
+}
+.cs-nav-label {
+  font-family: var(--z-font-mono, monospace);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--z-text-muted, #94a3b8);
+  text-transform: uppercase;
+}
+/* Scrub slider + copy button (drag the art or the slider to flip poses) */
+.cs-scrub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 9px;
+  width: 100%;
+  min-width: 0;
+}
+.cs-scrub-track {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+  cursor: ew-resize;
+  touch-action: none;
+  overflow: hidden;
+}
+.cs-scrub-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--hero-color, #3b82f6), var(--hero-bright, #93c5fd));
+  box-shadow: 0 0 8px var(--hero-glow, rgba(59,130,246,.5));
+}
+.cs-copy {
+  font-family: var(--z-font-mono, monospace);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(255,255,255,.05);
+  color: var(--hero-bright, #93c5fd);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s ease, color .15s ease;
+}
+.cs-copy:hover {
+  background: rgba(255,255,255,.12);
+}
+.cs-copy:active {
+  transform: translateY(1px);
 }
 
 /* ── Dossier & Stats Panel (right) — translucent glass ── */
@@ -463,7 +677,9 @@ onMounted(async () => {
 .cs-lore {
   position: relative;
   z-index: 3;
-  background: var(--z-bg-dark, #030305);
+  /* Translucent so the pinned character art stays visible as a dimmed
+     backdrop behind the lore docs while scrolling */
+  background: rgba(3, 3, 5, .82);
   border-top: 1px solid var(--hero-color, rgba(168,85,247,.25));
   box-shadow: 0 -12px 40px rgba(0,0,0,.55);
 }
