@@ -41,9 +41,9 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Assets:** 23 portraits · 23 bars · 10 cinematic MP4s (`assets/Voltkin_Portraits/`, `assets/Voltkin_Bars/`, `assets/Starred/Voltkin_Starred/`)
 - **Art preview:**
 
-  ![Voltkin standalone](assets/Voltkin.jpg)
-  ![Voltkin portrait](assets/Voltkin_Portraits/p_1778866771799.png)
-  ![Voltkin scene bar](assets/Voltkin_Bars/scene_1778877404137.png)
+  ![Voltkin standalone](../apps/vantage-strike/public/assets/Voltkin.jpg)
+  ![Voltkin portrait](../apps/vantage-strike/public/assets/Voltkin_Portraits/p_1778866771799.png)
+  ![Voltkin scene bar](../apps/vantage-strike/public/assets/Voltkin_Bars/scene_1778877404137.png)
 
   - Standalone: [`assets/Voltkin.jpg`](../apps/vantage-strike/public/assets/Voltkin.jpg)
   - Portrait: [`assets/Voltkin_Portraits/p_1778866771799.png`](../apps/vantage-strike/public/assets/Voltkin_Portraits/p_1778866771799.png)
@@ -64,9 +64,9 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Assets:** 25 portraits · 23 bars · 10 cinematic MP4s (`assets/Ashbeam_Portraits/`, `assets/Ashbeam_Bars/`, `assets/Starred/Ashbeam_Starred/`); standalone JPG `assets/Ashbeam.jpg`
 - **Art preview:**
 
-  ![Ashbeam standalone](assets/Ashbeam.jpg)
-  ![Ashbeam portrait](assets/Ashbeam_Portraits/p_1778866663977.png)
-  ![Ashbeam scene bar](assets/Ashbeam_Bars/scene_1778877262133.png)
+  ![Ashbeam standalone](../apps/vantage-strike/public/assets/Ashbeam.jpg)
+  ![Ashbeam portrait](../apps/vantage-strike/public/assets/Ashbeam_Portraits/p_1778866663977.png)
+  ![Ashbeam scene bar](../apps/vantage-strike/public/assets/Ashbeam_Bars/scene_1778877262133.png)
 
   - Standalone: [`assets/Ashbeam.jpg`](../apps/vantage-strike/public/assets/Ashbeam.jpg)
   - Portrait: [`assets/Ashbeam_Portraits/p_1778866663977.png`](../apps/vantage-strike/public/assets/Ashbeam_Portraits/p_1778866663977.png)
@@ -87,9 +87,9 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Assets:** 22 portraits · 27 bars · 10 cinematic MP4s (`assets/Crypsis_Portraits/`, `assets/Crypsis_Bars/`, `assets/Starred/Crypsis_Starred/`); standalone JPG `assets/Crypsis.jpg`
 - **Art preview:**
 
-  ![Crypsis standalone](assets/Crypsis.jpg)
-  ![Crypsis portrait](assets/Crypsis_Portraits/p_1778866681842.png)
-  ![Crypsis scene bar](assets/Crypsis_Bars/scene_1778877291672.png)
+  ![Crypsis standalone](../apps/vantage-strike/public/assets/Crypsis.jpg)
+  ![Crypsis portrait](../apps/vantage-strike/public/assets/Crypsis_Portraits/p_1778866681842.png)
+  ![Crypsis scene bar](../apps/vantage-strike/public/assets/Crypsis_Bars/scene_1778877291672.png)
 
   - Standalone: [`assets/Crypsis.jpg`](../apps/vantage-strike/public/assets/Crypsis.jpg)
   - Portrait: [`assets/Crypsis_Portraits/p_1778866681842.png`](../apps/vantage-strike/public/assets/Crypsis_Portraits/p_1778866681842.png)
@@ -110,9 +110,9 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Assets:** 21 portraits · 20 bars · 10 cinematic MP4s (`assets/Spectra_Portraits/`, `assets/Spectra_Bars/`, `assets/Starred/Spectra_Starred/`)
 - **Art preview:**
 
-  ![Spectra standalone](assets/Spectra.jpg)
-  ![Spectra portrait](assets/Spectra_Portraits/p_1778866744231.png)
-  ![Spectra scene bar](assets/Spectra_Bars/scene_1778877375231.png)
+  ![Spectra standalone](../apps/vantage-strike/public/assets/Spectra.jpg)
+  ![Spectra portrait](../apps/vantage-strike/public/assets/Spectra_Portraits/p_1778866744231.png)
+  ![Spectra scene bar](../apps/vantage-strike/public/assets/Spectra_Bars/scene_1778877375231.png)
 
   - Standalone: [`assets/Spectra.jpg`](../apps/vantage-strike/public/assets/Spectra.jpg)
   - Portrait: [`assets/Spectra_Portraits/p_1778866744231.png`](../apps/vantage-strike/public/assets/Spectra_Portraits/p_1778866744231.png)
@@ -133,9 +133,9 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Assets:** 20 portraits · 22 bars · 10 cinematic MP4s (`assets/Hellshift_Portraits/`, `assets/Hellshift_Bars/`, `assets/Starred/Hellshift_Starred/`); standalone JPG `assets/Hellshift.jpg`
 - **Art preview:**
 
-  ![Hellshift standalone](assets/Hellshift.jpg)
-  ![Hellshift portrait](assets/Hellshift_Portraits/p_1778869625436.png)
-  ![Hellshift scene bar](assets/Hellshift_Bars/scene_1778877332808.png)
+  ![Hellshift standalone](../apps/vantage-strike/public/assets/Hellshift.jpg)
+  ![Hellshift portrait](../apps/vantage-strike/public/assets/Hellshift_Portraits/p_1778869625436.png)
+  ![Hellshift scene bar](../apps/vantage-strike/public/assets/Hellshift_Bars/scene_1778877332808.png)
 
   - Standalone: [`assets/Hellshift.jpg`](../apps/vantage-strike/public/assets/Hellshift.jpg)
   - Portrait: [`assets/Hellshift_Portraits/p_1778869625436.png`](../apps/vantage-strike/public/assets/Hellshift_Portraits/p_1778869625436.png)
@@ -156,9 +156,9 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Assets:** 22 portraits · 22 bars · 10 cinematic MP4s (`assets/Kailin_Portraits/`, `assets/Kailin_Bars/`, `assets/Starred/Kailin_Starred/`)
 - **Art preview:**
 
-  ![Kailin standalone](assets/Kailin.jpg)
-  ![Kailin portrait](assets/Kailin_Portraits/p_1778866978646.png)
-  ![Kailin scene bar](assets/Kailin_Bars/scene_1778877350796.png)
+  ![Kailin standalone](../apps/vantage-strike/public/assets/Kailin.jpg)
+  ![Kailin portrait](../apps/vantage-strike/public/assets/Kailin_Portraits/p_1778866978646.png)
+  ![Kailin scene bar](../apps/vantage-strike/public/assets/Kailin_Bars/scene_1778877350796.png)
 
   - Standalone: [`assets/Kailin.jpg`](../apps/vantage-strike/public/assets/Kailin.jpg)
   - Portrait: [`assets/Kailin_Portraits/p_1778866978646.png`](../apps/vantage-strike/public/assets/Kailin_Portraits/p_1778866978646.png)
