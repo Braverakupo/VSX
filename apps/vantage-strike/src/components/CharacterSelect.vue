@@ -152,14 +152,16 @@ onMounted(async () => {
   height: 100%;
   z-index: 1;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse at 50% 0%, var(--hero-glow, rgba(59,130,246,.12)) 0%, transparent 55%),
-    var(--z-bg-dark, #030305);
+  background: #000; /* completely black */
 }
-/* Swirling themed glow — over the character layer for depth */
+/* Swirling themed glow — constrained to a centered band over the character
+   layer so it never paints the (black) background */
 .cs-swirl {
   position: absolute;
-  inset: -35%;
+  top: 0;
+  bottom: 0;
+  left: 14%;
+  width: 72%;
   z-index: 3;
   pointer-events: none;
   background: conic-gradient(
