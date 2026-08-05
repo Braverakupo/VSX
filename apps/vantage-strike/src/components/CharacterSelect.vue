@@ -1,13 +1,16 @@
 <script setup lang="ts">
 // CharacterSelect.vue — minimalist video-game style character select screen.
 // Rendered inside #game-view, so it is locked to the Main Game width (max 780px).
-// Follows the Landing Page's design guidelines: --z-* tokens, mono UI chrome,
-// and [data-faction] theming via applyTheme (cssScripts.ts).
+//
+// Layout: the large character art is PINNED (sticky) and does not scroll with
+// the page. The select UI (roster sidebar, caption, dossier) scrolls over it,
+// and ALL lore lives below the characters screen — scroll down to read it.
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { charTemplates, heroThemes, localImages } from '../config/gameData'
 import { CHAR_LORE } from '../config/loreData'
 import { JOB_MEDAL_DEFS } from '../config/jobMedalData'
 import { applyTheme } from '../composables/cssScripts'
+import LandingView from './LandingView.vue'
 
 const emit = defineEmits<{
   (e: 'select', hero: string): void
@@ -62,92 +65,181 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div ref="rootRef" class="cs">
-    <!-- ══ Character Roster Sidebar (left) ══ -->
-    <aside class="cs-side">
-      <button
-        v-for="hero in heroList"
-        :key="hero"
-        class="cs-char"
-        :class="{ active: selected === hero }"
-        @click="selectHero(hero)"
-      >
-        <span class="cs-avatar">
-          <img :src="BASE + portraitFor(hero)" :alt="hero" loading="lazy" @error="hideImg" />
-        </span>
-        <span class="cs-name">{{ hero }}</span>
-      </button>
-    </aside>
-
-    <!-- ══ Main Hero Presentation (center) ══ -->
-    <main class="cs-stage">
-      <!-- Background aura: behind the character layer, above the dark UI bg -->
+  <div ref="rootRef" class="cs-page">
+    <!-- ══ Pinned character art — never scrolls with the page ══ -->
+    <div class="cs-pin">
       <div class="cs-aura"></div>
-
-      <!-- Character art: full-background waist-up render -->
       <div class="cs-art">
         <img :src="heroArt" :alt="selected + ' render'" @error="hideImg" />
       </div>
-
-      <!-- Swirling themed glow over the character layer -->
       <div class="cs-swirl"></div>
-
-      <!-- Depth/readability scrim -->
       <div class="cs-shade"></div>
+    </div>
 
-      <!-- Typography (bottom left, based on selected character) -->
-      <div class="cs-caption">
-        <div class="cs-kicker">PILOT PROFILE</div>
-        <div class="cs-name-big">{{ selected }}</div>
-        <div class="cs-role">{{ SHORT_ROLES[selected] }}</div>
-      </div>
+    <!-- ══ Select UI overlay — scrolls away over the pinned art ══ -->
+    <div class="cs-ui">
+        <!-- Character Roster Sidebar (left) -->
+        <aside class="cs-side">
+          <button
+            v-for="hero in heroList"
+            :key="hero"
+            class="cs-char"
+            :class="{ active: selected === hero }"
+            @click="selectHero(hero)"
+          >
+            <span class="cs-avatar">
+              <img :src="BASE + portraitFor(hero)" :alt="hero" loading="lazy" @error="hideImg" />
+            </span>
+            <span class="cs-name">{{ hero }}</span>
+          </button>
+        </aside>
 
-      <!-- ══ Dossier & Stats Panel (right) ══ -->
-      <aside class="cs-dossier">
-        <div class="glass">
-          <div class="d-head">
-            <span class="d-kicker">DOSSIER</span>
-            <span class="d-real">{{ lore.realName }}</span>
-          </div>
-          <dl class="d-facts">
-            <div class="d-fact"><dt>Role</dt><dd>{{ lore.role }}</dd></div>
-            <div class="d-fact"><dt>Mech</dt><dd>{{ lore.mech }}</dd></div>
-            <div class="d-fact"><dt>Tenet</dt><dd>{{ lore.hardcoreTenet }}</dd></div>
-            <div class="d-fact d-fact--quote"><dt>Philosophy</dt><dd>"{{ lore.philosophy }}"</dd></div>
-          </dl>
-          <p class="d-back">{{ lore.background }}</p>
-          <div class="d-medals">
-            <div class="d-medals-label">JOB MEDALS</div>
-            <div class="d-medals-grid">
-              <div v-for="m in medals" :key="m.id" class="d-medal" :title="m.desc">
-                <span class="d-medal-name">{{ m.name }}</span>
-                <span class="d-medal-stat">{{ m.stats[0] }}</span>
+        <!-- Typography (bottom left, based on selected character) -->
+        <div class="cs-caption">
+          <div class="cs-kicker">PILOT PROFILE</div>
+          <div class="cs-name-big">{{ selected }}</div>
+          <div class="cs-role">{{ SHORT_ROLES[selected] }}</div>
+        </div>
+
+        <!-- Dossier & Stats Panel (right) -->
+        <aside class="cs-dossier">
+          <div class="glass">
+            <div class="d-head">
+              <span class="d-kicker">DOSSIER</span>
+              <span class="d-real">{{ lore.realName }}</span>
+            </div>
+            <dl class="d-facts">
+              <div class="d-fact"><dt>Role</dt><dd>{{ lore.role }}</dd></div>
+              <div class="d-fact"><dt>Mech</dt><dd>{{ lore.mech }}</dd></div>
+              <div class="d-fact"><dt>Tenet</dt><dd>{{ lore.hardcoreTenet }}</dd></div>
+              <div class="d-fact d-fact--quote"><dt>Philosophy</dt><dd>"{{ lore.philosophy }}"</dd></div>
+            </dl>
+            <p class="d-back">{{ lore.background }}</p>
+            <div class="d-medals">
+              <div class="d-medals-label">JOB MEDALS</div>
+              <div class="d-medals-grid">
+                <div v-for="m in medals" :key="m.id" class="d-medal" :title="m.desc">
+                  <span class="d-medal-name">{{ m.name }}</span>
+                  <span class="d-medal-stat">{{ m.stats[0] }}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </aside>
-    </main>
+        </aside>
+      <!-- ══ All lore below the characters screen ══ -->
+    </div>
+
+    <section class="cs-lore">
+      <LandingView sections-only />
+    </section>
   </div>
 </template>
 
 <style scoped>
-.cs {
-  display: flex;
+.cs-page {
+  position: relative;
   width: 100%;
   max-width: 780px;
   height: 100%;
-  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--z-bg-dark, #030305);
+}
+
+/* ── Pinned art layer (sticky — does not scroll) ── */
+.cs-pin {
+  position: sticky;
+  top: 0;
+  height: 100%;
+  z-index: 1;
   overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 0%, var(--hero-glow, rgba(59,130,246,.12)) 0%, transparent 55%),
     var(--z-bg-dark, #030305);
 }
+/* Aura — behind the character layer, in front of the dark UI background */
+.cs-aura {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 32% 42%, var(--hero-glow, rgba(59,130,246,.55)) 0%, transparent 52%),
+    radial-gradient(circle at 78% 26%, var(--hero-glow, rgba(59,130,246,.4)) 0%, transparent 46%);
+  filter: blur(18px);
+  mix-blend-mode: screen;
+  animation: cs-aura-breathe 5.5s ease-in-out infinite alternate;
+}
+@keyframes cs-aura-breathe {
+  from { opacity: .45; }
+  to { opacity: .9; }
+}
+
+/* Character art — full background render, slid slightly to the left so the
+   pilot sits clear of the dossier panel and reads as breaking out of frame */
+.cs-art {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  transform: translateX(-26px);
+}
+.cs-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 16%;
+}
+
+/* Swirling themed glow — over the character layer for depth */
+.cs-swirl {
+  position: absolute;
+  inset: -35%;
+  z-index: 3;
+  pointer-events: none;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    var(--hero-color, #3b82f6) 40deg,
+    transparent 90deg,
+    transparent 160deg,
+    var(--hero-bright, #93c5fd) 205deg,
+    transparent 260deg,
+    var(--hero-color, #3b82f6) 320deg,
+    transparent 360deg
+  );
+  filter: blur(34px);
+  opacity: .22;
+  mix-blend-mode: screen;
+  animation: cs-swirl-rotate 16s linear infinite;
+}
+@keyframes cs-swirl-rotate { to { transform: rotate(360deg); } }
+
+/* Readability scrim */
+.cs-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, rgba(3,3,5,.85) 0%, rgba(3,3,5,.25) 32%, transparent 60%),
+    linear-gradient(to right, rgba(3,3,5,.6) 0%, transparent 30%);
+}
+
+/* ── Select UI overlay — absolutely positioned over the pinned art area, so
+   it consumes no flow space and scrolls away while the art stays pinned ── */
+.cs-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
 
 /* ── Roster Sidebar (left) ── */
 .cs-side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
   width: 122px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -156,7 +248,6 @@ onMounted(async () => {
   overflow-x: hidden;
   background: linear-gradient(90deg, rgba(0, 0, 0, .55), transparent);
   border-right: 1px solid var(--z-border-muted, rgba(168,85,247,.1));
-  z-index: 4;
 }
 .cs-char {
   display: flex;
@@ -205,87 +296,13 @@ onMounted(async () => {
   text-shadow: 0 0 8px var(--hero-glow, rgba(59,130,246,.5));
 }
 
-/* ── Stage (center) ── */
-.cs-stage {
-  flex: 1;
-  min-width: 0;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Aura — behind the character layer, in front of the dark UI background */
-.cs-aura {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 32% 42%, var(--hero-glow, rgba(59,130,246,.55)) 0%, transparent 52%),
-    radial-gradient(circle at 78% 26%, var(--hero-glow, rgba(59,130,246,.4)) 0%, transparent 46%);
-  filter: blur(18px);
-  mix-blend-mode: screen;
-  animation: cs-aura-breathe 5.5s ease-in-out infinite alternate;
-}
-@keyframes cs-aura-breathe {
-  from { opacity: .45; }
-  to { opacity: .9; }
-}
-
-/* Character art — full background, intentionally breaks out of containers */
-.cs-art {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-}
-.cs-art img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 16%;
-}
-
-/* Swirling themed glow — over the character layer for depth */
-.cs-swirl {
-  position: absolute;
-  inset: -35%;
-  z-index: 3;
-  pointer-events: none;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    var(--hero-color, #3b82f6) 40deg,
-    transparent 90deg,
-    transparent 160deg,
-    var(--hero-bright, #93c5fd) 205deg,
-    transparent 260deg,
-    var(--hero-color, #3b82f6) 320deg,
-    transparent 360deg
-  );
-  filter: blur(34px);
-  opacity: .22;
-  mix-blend-mode: screen;
-  animation: cs-swirl-rotate 16s linear infinite;
-}
-@keyframes cs-swirl-rotate { to { transform: rotate(360deg); } }
-
-/* Readability scrim */
-.cs-shade {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-  background:
-    linear-gradient(to top, rgba(3,3,5,.85) 0%, rgba(3,3,5,.25) 32%, transparent 60%),
-    linear-gradient(to right, rgba(3,3,5,.6) 0%, transparent 30%);
-}
-
 /* ── Typography (bottom left) ── */
 .cs-caption {
   position: absolute;
-  left: 16px;
+  left: 138px;
   bottom: 16px;
   z-index: 6;
-  max-width: 58%;
+  max-width: 50%;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -463,11 +480,23 @@ onMounted(async () => {
   color: var(--z-text-secondary, #64748b);
 }
 
+/* ── All lore below the characters screen ── */
+.cs-lore {
+  position: relative;
+  z-index: 3;
+  background: var(--z-bg-dark, #030305);
+  border-top: 1px solid var(--hero-color, rgba(168,85,247,.25));
+  box-shadow: 0 -12px 40px rgba(0,0,0,.55);
+}
+
 /* ── Narrow layouts: roster strip on top, compact dossier ── */
 @media (max-width: 700px) {
-  .cs { flex-direction: column; }
   .cs-side {
-    width: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    width: auto;
     height: 88px;
     flex-direction: row;
     gap: 8px;
@@ -483,6 +512,7 @@ onMounted(async () => {
   .cs-name { font-size: 7.5px; }
   .cs-dossier { width: 168px; top: 10px; right: 10px; bottom: 10px; }
   .cs-name-big { font-size: clamp(26px, 8vw, 38px); }
-  .cs-caption { max-width: 52%; }
+  .cs-caption { left: 16px; max-width: 52%; }
+  .cs-art { transform: translateX(-16px); }
 }
 </style>

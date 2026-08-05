@@ -8,6 +8,9 @@ import RosterProfile from './RosterProfile.vue'
 const props = defineProps<{
   /** Optional section id to scroll to on mount (e.g. 'lv-codex' for the Lore section). */
   anchor?: string
+  /** Lore-only mode: hides the masthead/roster, renders as an in-flow block
+      (used below the character select screen). Inherits the parent faction theme. */
+  sectionsOnly?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -23,12 +26,12 @@ const heroList = charTemplates as readonly string[]
 const activeTheme = computed(() => heroThemes[activeHero.value] || heroThemes.Voltkin)
 
 watch(activeHero, (name) => {
-  applyTheme(pageRef.value, name)
+  if (!props.sectionsOnly) applyTheme(pageRef.value, name)
 })
 
 onMounted(async () => {
   await nextTick()
-  applyTheme(pageRef.value, activeHero.value)
+  if (!props.sectionsOnly) applyTheme(pageRef.value, activeHero.value)
   if (props.anchor) scrollTo(props.anchor)
 })
 
@@ -47,9 +50,9 @@ function scrollTo(id: string) {
 </script>
 
 <template>
-  <div ref="pageRef" class="lv">
+  <div ref="pageRef" class="lv" :class="{ 'lv--sections': sectionsOnly }">
       <!-- ── Hero masthead ── -->
-      <section class="lv-hero">
+      <section v-if="!sectionsOnly" class="lv-hero">
         <button class="z-btn z-btn--ghost lv-close" @click="emit('close')">✕ Exit</button>
         <div class="lv-hero-inner">
           <div class="lv-kicker">A MODERN RITE OF PASSAGE</div>
@@ -138,7 +141,7 @@ function scrollTo(id: string) {
       </section>
 
       <!-- ── The Roster ── -->
-      <section id="lv-roster" class="lv-section">
+      <section v-if="!sectionsOnly" id="lv-roster" class="lv-section">
         <div class="lv-section-head">
           <span class="z-badge">THE ROSTER</span>
           <h2>The Inner Council</h2>
@@ -195,7 +198,7 @@ function scrollTo(id: string) {
         <div class="lv-footer-mandate">"{{ SQUAD_MANDATE }}"</div>
         <div class="lv-footer-creed">"{{ ASHBEAM_CREED }}"</div>
         <div class="lv-footer-cta">
-          <button class="z-btn z-btn--primary" @click="scrollTo('lv-hero')">Rise Above the Noise</button>
+          <button v-if="!sectionsOnly" class="z-btn z-btn--primary" @click="scrollTo('lv-hero')">Rise Above the Noise</button>
         </div>
         <div class="lv-footer-copy">VANTAGE STRIKE — a metaphysical framework for self-becoming. Gnosis → Praxis.</div>
       </footer>
@@ -213,6 +216,16 @@ function scrollTo(id: string) {
   color: var(--z-text-primary);
   font-family: var(--z-font-ui);
   scroll-behavior: smooth;
+}
+
+/* Lore-only mode: in-flow block, no own scrolling, inherits parent theme */
+.lv--sections {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  height: auto;
+  overflow: visible;
+  background: transparent;
 }
 
 /* ── Hero ── */

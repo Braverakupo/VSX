@@ -8,9 +8,7 @@ import type { NavSection } from './components/GameHeader.vue'
 import GameCard from './components/GameCard.vue'
 import GemTooltip from './components/GemTooltip.vue'
 import TutorialOverlay from './components/TutorialOverlay.vue'
-import GalleryOverlay from './components/GalleryOverlay.vue'
 import SettingsOverlay from './components/SettingsOverlay.vue'
-import LandingView from './components/LandingView.vue'
 import CharacterSelect from './components/CharacterSelect.vue'
 
 interface TapPopupPayload {
@@ -29,20 +27,13 @@ const showTutorial = ref(false)
 const showSettings = ref(false)
 
 // ── Navigation ──
-// The landing page is the outside 'home' state. Inside the game the top nav
-// switches between Play / Lore / Characters / Assets sections.
-const showLanding = ref(false)
-const section = ref<Exclude<NavSection, 'home'>>('play')
+// Two sections: the character select (which hosts all lore below it) and
+// the active game screen.
+const section = ref<NavSection>('play')
 const charSelectHero = ref('Ashbeam')
 
 function onNavigate(target: NavSection) {
-  if (target === 'home') {
-    showLanding.value = true
-    section.value = 'play'
-  } else {
-    showLanding.value = false
-    section.value = target
-  }
+  section.value = target
 }
 
 // ── Damage popups ──
@@ -53,7 +44,6 @@ let popupIdCounter = 0
 
 const isGameScreenActive = computed(() =>
   section.value === 'play' &&
-  !showLanding.value &&
   !showTutorial.value &&
   !showSettings.value &&
   document.visibilityState === 'visible'
@@ -102,24 +92,14 @@ onUnmounted(() => {
   <div id="game-view" ref="gameViewRef">
     <GameHeader
       :section="section"
-      :landing-open="showLanding"
       :theme-override="section === 'characters' ? charSelectHero : null"
       @navigate="onNavigate"
       @open-settings="showSettings = true"
     />
 
     <div class="content-row">
-      <!-- Home (outside) — the Landing Page masthead -->
-      <LandingView v-if="showLanding" @close="onNavigate('play')" />
-
-      <!-- Lore section — the Landing Page anchored to its lore content -->
-      <LandingView v-else-if="section === 'lore'" anchor="lv-codex" @close="onNavigate('play')" />
-
-      <!-- Characters — the character select screen (locked to Main Game width) -->
-      <CharacterSelect v-else-if="section === 'characters'" @select="charSelectHero = $event" />
-
-      <!-- Assets — the asset browser rendered inline inside the game view -->
-      <GalleryOverlay v-else-if="section === 'assets'" inline :visible="true" @close="onNavigate('play')" />
+      <!-- Characters — character select screen with all lore below it -->
+      <CharacterSelect v-if="section === 'characters'" @select="charSelectHero = $event" />
 
       <!-- Play — the active game screen -->
       <template v-else>

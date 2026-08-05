@@ -8,16 +8,13 @@ import GemRotary from './GemRotary.vue'
 type GemColorKey = 'reds' | 'blues' | 'oranges' | 'cyans' | 'purples' | 'blacks'
 
 /**
- * Top Navigation sections. 'home' is the outside (landing page) state;
- * the rest are the deeper navigations available inside the game.
+ * Top Navigation sections available inside the game.
  */
-export type NavSection = 'home' | 'lore' | 'characters' | 'play' | 'assets'
+export type NavSection = 'characters' | 'play'
 
 const props = defineProps<{
   /** Active section (inside the game). */
   section?: NavSection
-  /** Outside state — the landing page is open. */
-  landingOpen?: boolean
   /** Optional external faction theme (e.g. character select hero) that
       overrides the rotary's active hero for the header's [data-faction]. */
   themeOverride?: string | null
@@ -29,16 +26,11 @@ const emit = defineEmits<{
 }>()
 
 // ── Top navigation bar ──
-const NAV_ITEMS: NavSection[] = ['home', 'lore', 'characters', 'play', 'assets']
-const navItems = computed<NavSection[]>(() => (props.landingOpen ? ['home'] : NAV_ITEMS))
-const activeItem = computed<NavSection>(() => (props.landingOpen ? 'home' : (props.section ?? 'play')))
+const NAV_ITEMS: NavSection[] = ['characters', 'play']
+const navItems = computed<NavSection[]>(() => NAV_ITEMS)
+const activeItem = computed<NavSection>(() => (props.section ?? 'play'))
 
 function onNav(target: NavSection) {
-  // While outside, [HOME] acts as the entry button — jump into the game.
-  if (target === 'home' && props.landingOpen) {
-    emit('navigate', 'play')
-    return
-  }
   emit('navigate', target)
 }
 
@@ -89,7 +81,7 @@ const titleTheme = computed(() => {
 // character select screen's selected pilot).
 const activeHeroName = computed(() => colorToChar[selectedGemColor.value])
 const effectiveTheme = computed(() => props.themeOverride || activeHeroName.value)
-watch([effectiveTheme, () => props.landingOpen], () => {
+watch(effectiveTheme, () => {
   applyTheme(headerRef.value, effectiveTheme.value)
 })
 
@@ -142,9 +134,9 @@ function onTitleClick() {
     <div class="header-top">
       <div class="header-left">
         <div class="title" :style="{ color: titleTheme.color }" @click="onTitleClick">VANTAGE STRIKE</div>
-        <GemRotary v-if="!landingOpen" ref="gemRotaryRef" @char-change="selectedGemColor = $event" @close-dropdowns="onCloseDropdowns" />
+        <GemRotary ref="gemRotaryRef" @char-change="selectedGemColor = $event" @close-dropdowns="onCloseDropdowns" />
       </div>
-      <div v-if="!landingOpen" class="header-right">
+      <div class="header-right">
         <div class="header-stat gold-stat">
           <span class="label">GOLD</span>
           <span class="value gold-value">{{ formatNotation(totalCharGold) }}</span>
@@ -155,7 +147,7 @@ function onTitleClick() {
       </div>
     </div>
 
-    <!-- Top Navigation Bar: [Home] [Lore] [Characters] [Play] [Assets].
+    <!-- Top Navigation Bar: [Characters] [Play].
          The active section drops its brackets, takes the themed color, and
          shows a glowing themed underline. -->
     <nav class="header-nav">
