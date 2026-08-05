@@ -68,7 +68,6 @@ onMounted(async () => {
   <div ref="rootRef" class="cs-page">
     <!-- ══ Pinned character art — never scrolls with the page ══ -->
     <div class="cs-pin">
-      <div class="cs-aura"></div>
       <div class="cs-art">
         <img :src="heroArt" :alt="selected + ' render'" @error="hideImg" />
       </div>
@@ -157,39 +156,6 @@ onMounted(async () => {
     radial-gradient(ellipse at 50% 0%, var(--hero-glow, rgba(59,130,246,.12)) 0%, transparent 55%),
     var(--z-bg-dark, #030305);
 }
-/* Aura — behind the character layer, in front of the dark UI background */
-.cs-aura {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 32% 42%, var(--hero-glow, rgba(59,130,246,.55)) 0%, transparent 52%),
-    radial-gradient(circle at 78% 26%, var(--hero-glow, rgba(59,130,246,.4)) 0%, transparent 46%);
-  filter: blur(18px);
-  mix-blend-mode: screen;
-  animation: cs-aura-breathe 5.5s ease-in-out infinite alternate;
-}
-@keyframes cs-aura-breathe {
-  from { opacity: .45; }
-  to { opacity: .9; }
-}
-
-/* Character art — full size (100% of the pinned area), centered on screen,
-   and fully visible (object-fit: contain — never cropped). Starts at the top
-   bar's bottom edge */
-.cs-art {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-}
-.cs-art img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* no cropping — full image visible */
-  object-position: center;
-}
-
 /* Swirling themed glow — over the character layer for depth */
 .cs-swirl {
   position: absolute;
@@ -213,6 +179,21 @@ onMounted(async () => {
   animation: cs-swirl-rotate 16s linear infinite;
 }
 @keyframes cs-swirl-rotate { to { transform: rotate(360deg); } }
+
+/* Character art — full size (100% of the pinned area), centered on screen,
+   and fully visible (object-fit: contain — never cropped). Starts at the top
+   bar's bottom edge */
+.cs-art {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.cs-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* no cropping — full image visible */
+  object-position: center;
+}
 
 /* Readability scrim */
 .cs-shade {
