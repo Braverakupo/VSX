@@ -5,6 +5,11 @@ import { applyTheme } from '../composables/cssScripts'
 import { CHAR_LORE, CODEX, WORLDS, FALL_OF_ARCADIA, WARGEAR, VEIL_KIN, SQUAD_MANDATE, ASHBEAM_CREED, HARDCORE_TENETS } from '../config/loreData'
 import RosterProfile from './RosterProfile.vue'
 
+const props = defineProps<{
+  /** Optional section id to scroll to on mount (e.g. 'lv-codex' for the Lore section). */
+  anchor?: string
+}>()
+
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
@@ -24,6 +29,11 @@ watch(activeHero, (name) => {
 onMounted(async () => {
   await nextTick()
   applyTheme(pageRef.value, activeHero.value)
+  if (props.anchor) scrollTo(props.anchor)
+})
+
+watch(() => props.anchor, (a) => {
+  if (a) nextTick(() => scrollTo(a))
 })
 
 function setHero(name: string) {
@@ -37,8 +47,7 @@ function scrollTo(id: string) {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div ref="pageRef" class="lv">
+  <div ref="pageRef" class="lv">
       <!-- ── Hero masthead ── -->
       <section class="lv-hero">
         <button class="z-btn z-btn--ghost lv-close" @click="emit('close')">✕ Exit</button>
@@ -190,15 +199,14 @@ function scrollTo(id: string) {
         </div>
         <div class="lv-footer-copy">VANTAGE STRIKE — a metaphysical framework for self-becoming. Gnosis → Praxis.</div>
       </footer>
-    </div>
-  </Teleport>
+  </div>
 </template>
 
 <style scoped>
 .lv {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 290;
+  z-index: 5;
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--z-bg-dark);

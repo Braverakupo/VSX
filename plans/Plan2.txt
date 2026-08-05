@@ -1,0 +1,32 @@
+create a new plan, apps\vantage-strike\src\composables\cssScripts.ts , apps\vantage-strike\src\templatecss.css , apps\vantage-strike\AGENTS.md
+
+Damage number popups MUST be disabled when the application is not in the active game screen."
+Top Navigation Bar now does not hold tuturial or assets button, but a proper [Home] button.
+Inside, once inside the Top Navigation Bar is enhanced slightly in size and allows for deeper Navigations:
+[Home] [Lore] [Characters] [Play] [Assets].
+The active state [CHARACTERS] drops the brackets, turns (themed color based on character selected), and features a glowing (theme color) underline to indicate current selection. 
+
+Follow the general guidelines in our current Landing Page. But our goal is a new minimalist Video game style Character select screen(not related to our actual gameplay), locked properly to the width allowed in our Main Game.
+
+2. Character Roster Sidebar (Left): Avatar Style: Square portraits with slightly rounded corners. Emulating our game styling but all the way to the allowed left of screen. Character Names: Placed directly below each portrait in small, condensed caps.
+
+Main Hero Presentation (Center)
+Character Art: A large, dynamic, waist-up render of the selected character (Ashbeam) taking up the full background of the screens space.(to be adjusted later, just use any asset for now, not portraits)
+
+Background Aura: A vivid, swirling character related (character themed) effect sits behind the character layer but in front of the dark UI background, giving the screen immense depth.
+
+Typography (Bottom Left/ based on selected character):
+
+Name: "Ashbeam" in massive, bold, italicized, (character themed) sans-serif font.
+
+Title/Role: "Sniper-Tactician" positioned directly underneath in a smaller, italicized, (character themed) font.
+
+
+
+Dossier & Stats Panel (Right)
+This section is housed within a translucent, dark grey "glass" container with rounded corners and a very subtle inner border.
+This section contains the character related Lore. And at the bottom shows a grid layout(3 rows of 3) of the Job Medals and their Titles
+
+Z-Indexing & Depth: The character art intentionally breaks out of any rigid containers, overlapping the text and the background elements to create a 3D, immersive feel.
+
+Glow Effects: backdrop-filter , box-shadow and text-shadow are used extensively but tastefully to make the neon accents pop against the deep black/grey background.

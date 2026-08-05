@@ -4,12 +4,14 @@ import { gameState, formatNotation, initGame, cleanupGame } from './composables/
 import { initVideoSystem, cleanupVideoSystem, updateVideoForObjective, reduceDmgNumbers } from './composables/useVideoPool'
 import { applyTheme } from './composables/cssScripts'
 import GameHeader from './components/GameHeader.vue'
+import type { NavSection } from './components/GameHeader.vue'
 import GameCard from './components/GameCard.vue'
 import GemTooltip from './components/GemTooltip.vue'
 import TutorialOverlay from './components/TutorialOverlay.vue'
 import GalleryOverlay from './components/GalleryOverlay.vue'
 import SettingsOverlay from './components/SettingsOverlay.vue'
 import LandingView from './components/LandingView.vue'
+import CharacterSelect from './components/CharacterSelect.vue'
 
 interface TapPopupPayload {
   dmg: number
@@ -22,11 +24,43 @@ interface TapPopup extends TapPopupPayload {
   id: number
 }
 
-// Popup management
+// ── Overlay visibility ──
+const showTutorial = ref(false)
+const showSettings = ref(false)
+
+// ── Navigation ──
+// The landing page is the outside 'home' state. Inside the game the top nav
+// switches between Play / Lore / Characters / Assets sections.
+const showLanding = ref(false)
+const section = ref<Exclude<NavSection, 'home'>>('play')
+const charSelectHero = ref('Ashbeam')
+
+function onNavigate(target: NavSection) {
+  if (target === 'home') {
+    showLanding.value = true
+    section.value = 'play'
+  } else {
+    showLanding.value = false
+    section.value = target
+  }
+}
+
+// ── Damage popups ──
+// MUST be disabled when the application is not in the active game screen:
+// any overlay open, a non-play section, or the tab hidden.
 const popups = ref<TapPopup[]>([])
 let popupIdCounter = 0
 
+const isGameScreenActive = computed(() =>
+  section.value === 'play' &&
+  !showLanding.value &&
+  !showTutorial.value &&
+  !showSettings.value &&
+  document.visibilityState === 'visible'
+)
+
 function spawnTapPopup(payload: TapPopupPayload) {
+  if (!isGameScreenActive.value) return
   if (reduceDmgNumbers.value) {
     const firstObj = gameState.objectives[0]
     if (!firstObj || payload.obj?.id !== firstObj.id) return
@@ -37,12 +71,6 @@ function spawnTapPopup(payload: TapPopupPayload) {
     popups.value = popups.value.filter(p => p.id !== id)
   }, 600)
 }
-
-// Overlay visibility
-const showTutorial = ref(false)
-const showGallery = ref(false)
-const showSettings = ref(false)
-const showLanding = ref(false)
 
 // Faction theming: root surface follows the active (top) hero
 const gameViewRef = ref<HTMLElement | null>(null)
@@ -73,23 +101,39 @@ onUnmounted(() => {
 <template>
   <div id="game-view" ref="gameViewRef">
     <GameHeader
-      @open-tutorial="showTutorial = true"
-      @open-gallery="showGallery = true"
+      :section="section"
+      :landing-open="showLanding"
+      :theme-override="section === 'characters' ? charSelectHero : null"
+      @navigate="onNavigate"
       @open-settings="showSettings = true"
-      @open-landing="showLanding = true"
     />
 
     <div class="content-row">
-      <div class="cards-scroll">
-        <div class="cards-column">
-          <GameCard
-            v-for="obj in gameState.objectives"
-            :key="obj.id"
-            :objective="obj"
-            @tap-popup="spawnTapPopup"
-          />
+      <!-- Home (outside) — the Landing Page masthead -->
+      <LandingView v-if="showLanding" @close="onNavigate('play')" />
+
+      <!-- Lore section — the Landing Page anchored to its lore content -->
+      <LandingView v-else-if="section === 'lore'" anchor="lv-codex" @close="onNavigate('play')" />
+
+      <!-- Characters — the character select screen (locked to Main Game width) -->
+      <CharacterSelect v-else-if="section === 'characters'" @select="charSelectHero = $event" />
+
+      <!-- Assets — the asset browser rendered inline inside the game view -->
+      <GalleryOverlay v-else-if="section === 'assets'" inline :visible="true" @close="onNavigate('play')" />
+
+      <!-- Play — the active game screen -->
+      <template v-else>
+        <div class="cards-scroll">
+          <div class="cards-column">
+            <GameCard
+              v-for="obj in gameState.objectives"
+              :key="obj.id"
+              :objective="obj"
+              @tap-popup="spawnTapPopup"
+            />
+          </div>
         </div>
-      </div>
+      </template>
     </div>
 
     <!-- Damage Popups -->
@@ -104,10 +148,8 @@ onUnmounted(() => {
       </div>
     </Teleport>
 
-    <SettingsOverlay v-if="showSettings" @close="showSettings = false" />
+    <SettingsOverlay v-if="showSettings" @close="showSettings = false" @open-tutorial="showTutorial = true" />
     <TutorialOverlay :visible="showTutorial" @close="showTutorial = false" />
-    <GalleryOverlay :visible="showGallery" @close="showGallery = false" />
-    <LandingView v-if="showLanding" @close="showLanding = false" />
     <GemTooltip />
   </div>
 </template>
@@ -138,6 +180,8 @@ onUnmounted(() => {
   justify-content: center;
   flex: 1;
   min-height: 0;
+  position: relative;
+  overflow: hidden;
 }
 
 .cards-scroll {

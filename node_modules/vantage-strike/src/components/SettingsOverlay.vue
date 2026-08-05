@@ -4,6 +4,7 @@ import { videoEnabled, toggleVideo, reduceDmgNumbers, toggleReduceDmg } from '..
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'openTutorial'): void
 }>()
 
 // Local computed to ensure reactive binding across component mounts
@@ -67,6 +68,13 @@ function confirmReset() {
           </div>
           <div class="settings-hint">
             Only shows damage numbers for the top character.
+          </div>
+
+          <div class="settings-divider"></div>
+
+          <div class="settings-row">
+            <span class="settings-label">How to Play</span>
+            <button class="tutorial-btn" @click="emit('openTutorial')" title="Open tutorial">?</button>
           </div>
 
           <div class="settings-divider"></div>
@@ -160,6 +168,31 @@ function confirmReset() {
 .settings-close:hover {
   background: rgba(168,85,247,.2);
   border-color: #a855f7;
+}
+
+/* ── How to Play Button ── */
+.tutorial-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 3px;
+  background: #0a0a12;
+  border: 1px solid rgba(168,85,247,.3);
+  color: #c084fc;
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all .12s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tutorial-btn:hover {
+  border-color: #a855f7;
+  background: rgba(168,85,247,.15);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(168,85,247,.3);
 }
 
 .settings-body {

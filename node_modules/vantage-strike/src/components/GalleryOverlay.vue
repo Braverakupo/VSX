@@ -5,6 +5,8 @@ import { localImages, ALL_GEMS, gemColorInfo, charTemplates } from '../config/ga
 
 defineProps<{
   visible?: boolean
+  /** Render inside the current flow (game view) instead of a fullscreen overlay. */
+  inline?: boolean
 }>()
 const emit = defineEmits<{
   (e: 'close'): void
@@ -127,8 +129,8 @@ function setTab(tab: TabKey) {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="visible" class="gallery-overlay" @click.self="emit('close')">
+  <Teleport :disabled="inline" to="body">
+    <div v-if="visible" class="gallery-overlay" :class="{ 'gallery-overlay--inline': inline }" @click.self="emit('close')">
       <div class="gallery-modal">
         <!-- Header -->
         <div class="gallery-header">
@@ -192,6 +194,25 @@ function setTab(tab: TabKey) {
 @keyframes gallery-fadein {
   0% { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ── Inline mode (Assets section inside the Main Game view) ── */
+.gallery-overlay--inline {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: var(--z-bg-dark, #030305);
+  padding: 8px;
+  align-items: stretch;
+}
+.gallery-overlay--inline .gallery-modal {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  border: none;
+  border-radius: 6px;
+  box-shadow: none;
 }
 
 .gallery-modal {
