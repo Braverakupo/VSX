@@ -11,6 +11,7 @@ const emit = defineEmits<{
   (e: 'openTutorial'): void
   (e: 'openGallery'): void
   (e: 'openSettings'): void
+  (e: 'openLanding'): void
 }>()
 
 // Template ref to GemRotary for programmatic advancement via title click
@@ -113,6 +114,7 @@ function onTitleClick() {
       <GemRotary ref="gemRotaryRef" @char-change="selectedGemColor = $event" @close-dropdowns="onCloseDropdowns" />
       <button class="z-btn z-btn--mini" @click="emit('openTutorial')" title="How to Play">[?]</button>
       <button class="z-btn z-btn--mini" @click="emit('openGallery')" title="View all assets">[G]</button>
+      <button class="z-btn z-btn--mini" @click="emit('openLanding')" title="Lore & Profiles">[L]</button>
     </div>
     <div class="header-right">
       <div class="header-stat gold-stat">

@@ -9,6 +9,7 @@ import GemTooltip from './components/GemTooltip.vue'
 import TutorialOverlay from './components/TutorialOverlay.vue'
 import GalleryOverlay from './components/GalleryOverlay.vue'
 import SettingsOverlay from './components/SettingsOverlay.vue'
+import LandingView from './components/LandingView.vue'
 
 interface TapPopupPayload {
   dmg: number
@@ -41,6 +42,7 @@ function spawnTapPopup(payload: TapPopupPayload) {
 const showTutorial = ref(false)
 const showGallery = ref(false)
 const showSettings = ref(false)
+const showLanding = ref(false)
 
 // Faction theming: root surface follows the active (top) hero
 const gameViewRef = ref<HTMLElement | null>(null)
@@ -74,6 +76,7 @@ onUnmounted(() => {
       @open-tutorial="showTutorial = true"
       @open-gallery="showGallery = true"
       @open-settings="showSettings = true"
+      @open-landing="showLanding = true"
     />
 
     <div class="content-row">
@@ -104,6 +107,7 @@ onUnmounted(() => {
     <SettingsOverlay v-if="showSettings" @close="showSettings = false" />
     <TutorialOverlay :visible="showTutorial" @close="showTutorial = false" />
     <GalleryOverlay :visible="showGallery" @close="showGallery = false" />
+    <LandingView v-if="showLanding" @close="showLanding = false" />
     <GemTooltip />
   </div>
 </template>
