@@ -45,29 +45,52 @@ function cycleBar(dir: number) {
   barIndex.value = (barIndex.value + dir + n) % n
 }
 
-// ── Drag-to-scrub: drag horizontally on the art (or the slider) to flip
-//    through the bar images when testing which one looks best ──
-let artScrub = false
-let artStartX = 0
-let artStartIdx = 0
+// ── Drag-to-pan: grab the character art and slide the visible crop around
+//    (photo-viewer style). The bars are wide 1376×768 landscape strips shown
+//    cropped to the portrait-ish screen via object-fit: cover, so a horizontal
+//    drag pans along the strip; vertical pan only engages on very short
+//    screens where the art overflows vertically. Pose cycling stays on the
+//    scrub slider and the ◀ ▶ arrow keys ──
+const artImg = ref<HTMLImageElement | null>(null)
+const panX = ref(15) // object-position X % — matches the original 15% anchor
+const panY = ref(50) // object-position Y % — 'center'
+const panning = ref(false)
+
+let panStartX = 0
+let panStartY = 0
+let panStartPx = 15
+let panStartPy = 50
 function artDown(e: PointerEvent) {
-  if (!bars.value.length) return
-  artScrub = true
-  artStartX = e.clientX
-  artStartIdx = barIndex.value
+  panning.value = true
+  panStartX = e.clientX
+  panStartY = e.clientY
+  panStartPx = panX.value
+  panStartPy = panY.value
   ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
   e.preventDefault()
 }
 function artMove(e: PointerEvent) {
-  if (!artScrub) return
-  const n = bars.value.length
-  if (!n) return
-  const w = (e.currentTarget as HTMLElement).clientWidth || 1
-  const delta = Math.round(((e.clientX - artStartX) / w) * n)
-  barIndex.value = (artStartIdx + delta + n) % n
+  if (!panning.value) return
+  const img = artImg.value
+  const host = e.currentTarget as HTMLElement
+  if (!img || !img.naturalWidth) return
+  // cover-scale math: how many px of the image overflow the frame on each axis
+  const s = Math.max(host.clientWidth / img.naturalWidth, host.clientHeight / img.naturalHeight)
+  const ox = img.naturalWidth * s - host.clientWidth
+  const oy = img.naturalHeight * s - host.clientHeight
+  const dx = e.clientX - panStartX
+  const dy = e.clientY - panStartY
+  if (ox > 0) {
+    const visibleLeft = (panStartPx / 100) * ox
+    panX.value = Math.min(100, Math.max(0, ((visibleLeft - dx) / ox) * 100))
+  }
+  if (oy > 0) {
+    const visibleTop = (panStartPy / 100) * oy
+    panY.value = Math.min(100, Math.max(0, ((visibleTop - dy) / oy) * 100))
+  }
 }
 function artUp() {
-  artScrub = false
+  panning.value = false
 }
 
 // Scrub slider: click or drag anywhere on the track to seek a pose
@@ -128,7 +151,11 @@ function portraitFor(hero: string): string {
 function selectHero(hero: string, resetBar = true) {
   if (selected.value === hero) return
   selected.value = hero
-  if (resetBar) barIndex.value = 0
+  if (resetBar) {
+    barIndex.value = 0
+    panX.value = 15
+    panY.value = 50
+  }
   emit('select', hero)
   nextTick(() => applyTheme(rootRef.value, hero))
 }
@@ -180,8 +207,8 @@ onBeforeUnmount(() => {
   <div ref="rootRef" class="cs-page">
     <!-- ══ Pinned character art — never scrolls with the page ══ -->
     <div class="cs-pin">
-      <div class="cs-art" @pointerdown="artDown" @pointermove="artMove" @pointerup="artUp" @pointercancel="artUp">
-        <img :src="heroArt" :alt="selected + ' render'" @error="hideImg" />
+      <div class="cs-art" :class="{ 'is-panning': panning }" @pointerdown="artDown" @pointermove="artMove" @pointerup="artUp" @pointercancel="artUp">
+        <img ref="artImg" :src="heroArt" :style="{ objectPosition: panX + '% ' + panY + '%' }" :alt="selected + ' render'" draggable="false" @error="hideImg" />
       </div>
       <div class="cs-swirl"></div>
       <div class="cs-shade"></div>
@@ -325,16 +352,20 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   z-index: 2;
-  cursor: ew-resize;
+  cursor: grab;
   touch-action: pan-y; /* vertical page scroll still works on touch */
+}
+.cs-art.is-panning {
+  cursor: grabbing;
 }
 .cs-art img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Left portion of the wide bar art: anchored toward the left so the
-     character (left 50% of the 1376×768 bars) fills the screen */
+  /* Wide bar art (1376×768) shown cropped; the crop anchor defaults to the
+     left portion so the character fills the screen — drag to pan it around */
   object-position: 15% center;
+  -webkit-user-drag: none;
 }
 
 /* Readability scrim */
@@ -491,7 +522,7 @@ onBeforeUnmount(() => {
   color: var(--z-text-muted, #94a3b8);
   text-transform: uppercase;
 }
-/* Scrub slider + copy button (drag the art or the slider to flip poses) */
+/* Scrub slider + copy button (drag the slider to flip poses) */
 .cs-scrub {
   display: flex;
   align-items: center;
