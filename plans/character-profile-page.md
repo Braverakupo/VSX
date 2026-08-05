@@ -39,6 +39,13 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Signature class:** **Vanguard** — *"Spearhead of the assault. Vantage builds faster and army swells with each blow."* (`vantagePerTap: 1`, `armyPerSecond: 2`)
 - **Job medals (10):** Vanguard · Berserker · Blademaster · Fury · Ravager · Tempest · Inferno · Warlord · Onslaught · Overlord
 - **Assets:** 23 portraits · 23 bars · 10 cinematic MP4s (`assets/Voltkin_Portraits/`, `assets/Voltkin_Bars/`, `assets/Starred/Voltkin_Starred/`)
+- **Art preview:**
+
+  ![Voltkin standalone](<../apps/vantage-strike/public/assets/Voltkin.jpg>) · ![Voltkin portrait](<../apps/vantage-strike/public/assets/Voltkin_Portraits/p_1778866771799.png>) · ![Voltkin scene bar](<../apps/vantage-strike/public/assets/Voltkin_Bars/scene_1778877404137.png>)
+
+  - Standalone: [`assets/Voltkin.jpg`](../apps/vantage-strike/public/assets/Voltkin.jpg)
+  - Portrait: [`assets/Voltkin_Portraits/p_1778866771799.png`](../apps/vantage-strike/public/assets/Voltkin_Portraits/p_1778866771799.png)
+  - Scene bar: [`assets/Voltkin_Bars/scene_1778877404137.png`](../apps/vantage-strike/public/assets/Voltkin_Bars/scene_1778877404137.png)
 - **Intel:**
   - ⬜ Backstory:
   - ⬜ Personality:
@@ -53,6 +60,13 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Signature class:** **Tactician** — *"Calculates every angle. Boosts crit chance and precise vantage strikes."* (`critChance: [10,15]`, `vantageCritChance: [5,10]`)
 - **Job medals (10):** Tactician · Ranger · Gunslinger · Spotter · Sharpshooter · Strategist · Patrol · Falcon · Scope · Ace
 - **Assets:** 25 portraits · 23 bars · 10 cinematic MP4s (`assets/Ashbeam_Portraits/`, `assets/Ashbeam_Bars/`, `assets/Starred/Ashbeam_Starred/`); standalone JPG `assets/Ashbeam.jpg`
+- **Art preview:**
+
+  ![Ashbeam standalone](<../apps/vantage-strike/public/assets/Ashbeam.jpg>) · ![Ashbeam portrait](<../apps/vantage-strike/public/assets/Ashbeam_Portraits/p_1778866663977.png>) · ![Ashbeam scene bar](<../apps/vantage-strike/public/assets/Ashbeam_Bars/scene_1778877262133.png>)
+
+  - Standalone: [`assets/Ashbeam.jpg`](../apps/vantage-strike/public/assets/Ashbeam.jpg)
+  - Portrait: [`assets/Ashbeam_Portraits/p_1778866663977.png`](../apps/vantage-strike/public/assets/Ashbeam_Portraits/p_1778866663977.png)
+  - Scene bar: [`assets/Ashbeam_Bars/scene_1778877262133.png`](../apps/vantage-strike/public/assets/Ashbeam_Bars/scene_1778877262133.png)
 - **Intel:**
   - ⬜ Backstory:
   - ⬜ Personality:
@@ -67,6 +81,13 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Signature class:** **Rogue** — *"Strikes from the shadows. Bonus final damage and stats per completion."* (`statPerCompletion: 0.015`)
 - **Job medals (10):** Rogue · Assassin · Trickster · Scout · Bandit · Shadowblade · Poacher · Marauder · Swashbuckler · Corsair · Shadow King
 - **Assets:** 22 portraits · 27 bars · 10 cinematic MP4s (`assets/Crypsis_Portraits/`, `assets/Crypsis_Bars/`, `assets/Starred/Crypsis_Starred/`); standalone JPG `assets/Crypsis.jpg`
+- **Art preview:**
+
+  ![Crypsis standalone](<../apps/vantage-strike/public/assets/Crypsis.jpg>) · ![Crypsis portrait](<../apps/vantage-strike/public/assets/Crypsis_Portraits/p_1778866681842.png>) · ![Crypsis scene bar](<../apps/vantage-strike/public/assets/Crypsis_Bars/scene_1778877291672.png>)
+
+  - Standalone: [`assets/Crypsis.jpg`](../apps/vantage-strike/public/assets/Crypsis.jpg)
+  - Portrait: [`assets/Crypsis_Portraits/p_1778866681842.png`](../apps/vantage-strike/public/assets/Crypsis_Portraits/p_1778866681842.png)
+  - Scene bar: [`assets/Crypsis_Bars/scene_1778877291672.png`](../apps/vantage-strike/public/assets/Crypsis_Bars/scene_1778877291672.png)
 - **Intel:**
   - ⬜ Backstory:
   - ⬜ Personality:
@@ -81,6 +102,13 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Signature class:** **Mystic** — *"Attuned to arcane forces. Bonus stats per completion and faster growth."* (`statPerCompletion: 0.02`)
 - **Job medals (10):** Mystic · Arcanist · Enchanter · Sage · Oracle · Aegis · Seer · Weaver · Luminary · Archon
 - **Assets:** 21 portraits · 20 bars · 10 cinematic MP4s (`assets/Spectra_Portraits/`, `assets/Spectra_Bars/`, `assets/Starred/Spectra_Starred/`)
+- **Art preview:**
+
+  ![Spectra standalone](<../apps/vantage-strike/public/assets/Spectra.jpg>) · ![Spectra portrait](<../apps/vantage-strike/public/assets/Spectra_Portraits/p_1778866744231.png>) · ![Spectra scene bar](<../apps/vantage-strike/public/assets/Spectra_Bars/scene_1778877375231.png>)
+
+  - Standalone: [`assets/Spectra.jpg`](../apps/vantage-strike/public/assets/Spectra.jpg)
+  - Portrait: [`assets/Spectra_Portraits/p_1778866744231.png`](../apps/vantage-strike/public/assets/Spectra_Portraits/p_1778866744231.png)
+  - Scene bar: [`assets/Spectra_Bars/scene_1778877375231.png`](../apps/vantage-strike/public/assets/Spectra_Bars/scene_1778877375231.png)
 - **Intel:**
   - ⬜ Backstory:
   - ⬜ Personality:
@@ -95,6 +123,13 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Signature class:** **Brawler** — *"Throws the first punch. Bigger armies that grow faster."* (`armyPerSecond: 2`)
 - **Job medals (10):** Brawler · Juggernaut · Reaver · Pugilist · Gladiator · Brute · Colossus · Ironclad · Titan · War Master
 - **Assets:** 20 portraits · 22 bars · 10 cinematic MP4s (`assets/Hellshift_Portraits/`, `assets/Hellshift_Bars/`, `assets/Starred/Hellshift_Starred/`); standalone JPG `assets/Hellshift.jpg`
+- **Art preview:**
+
+  ![Hellshift standalone](<../apps/vantage-strike/public/assets/Hellshift.jpg>) · ![Hellshift portrait](<../apps/vantage-strike/public/assets/Hellshift_Portraits/p_1778869625436.png>) · ![Hellshift scene bar](<../apps/vantage-strike/public/assets/Hellshift_Bars/scene_1778877332808.png>)
+
+  - Standalone: [`assets/Hellshift.jpg`](../apps/vantage-strike/public/assets/Hellshift.jpg)
+  - Portrait: [`assets/Hellshift_Portraits/p_1778869625436.png`](../apps/vantage-strike/public/assets/Hellshift_Portraits/p_1778869625436.png)
+  - Scene bar: [`assets/Hellshift_Bars/scene_1778877332808.png`](../apps/vantage-strike/public/assets/Hellshift_Bars/scene_1778877332808.png)
 - **Intel:**
   - ⬜ Backstory:
   - ⬜ Personality:
@@ -109,6 +144,13 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 - **Signature class:** **Executor** — *"Passes final judgment. Gains stats per completion and amplifies idle damage."* (`statPerCompletion: 0.04`)
 - **Job medals (10):** Executor · Voidcaller · Doombringer · Judge · Harbinger · Reaper · Inquisitor · Fallen · Eclipse · Death
 - **Assets:** 22 portraits · 22 bars · 10 cinematic MP4s (`assets/Kailin_Portraits/`, `assets/Kailin_Bars/`, `assets/Starred/Kailin_Starred/`)
+- **Art preview:**
+
+  ![Kailin standalone](<../apps/vantage-strike/public/assets/Kailin.jpg>) · ![Kailin portrait](<../apps/vantage-strike/public/assets/Kailin_Portraits/p_1778866978646.png>) · ![Kailin scene bar](<../apps/vantage-strike/public/assets/Kailin_Bars/scene_1778877350796.png>)
+
+  - Standalone: [`assets/Kailin.jpg`](../apps/vantage-strike/public/assets/Kailin.jpg)
+  - Portrait: [`assets/Kailin_Portraits/p_1778866978646.png`](../apps/vantage-strike/public/assets/Kailin_Portraits/p_1778866978646.png)
+  - Scene bar: [`assets/Kailin_Bars/scene_1778877350796.png`](../apps/vantage-strike/public/assets/Kailin_Bars/scene_1778877350796.png)
 - **Intel:**
   - ⬜ Backstory:
   - ⬜ Personality:
@@ -149,7 +191,7 @@ All 6 share the same five stat block: **Str, Spi, Int, Con, Dex** (defaults 5/5/
 
 ### 4.5 Optional enhancements (not required for v1)
 - Cinematic MP4 embed keyed off `VANTAGE_STRIKE_THRESHOLD` / `mp4Index` (`assets/Starred/<Name>_Starred/`).
-- Standalone JPGs (`Ashbeam.jpg`, `Crypsis.jpg`, `Hellshift.jpg`) as alternate hero art.
+- Standalone JPGs for **all 6 heroes** (`Voltkin.jpg`, `Ashbeam.jpg`, `Crypsis.jpg`, `Spectra.jpg`, `Hellshift.jpg`, `Kailin.jpg` at `assets/*.jpg`) as alternate hero art.
 
 ---
 
