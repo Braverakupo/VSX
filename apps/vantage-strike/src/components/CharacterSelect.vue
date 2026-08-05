@@ -402,10 +402,6 @@ onMounted(async () => {
   color: var(--z-text-secondary, #64748b);
   border-top: 1px solid rgba(255,255,255,.06);
   padding-top: 8px;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 /* Job Medals — 3 rows × 3 columns of medals + titles */
