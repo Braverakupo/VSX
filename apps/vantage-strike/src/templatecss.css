@@ -1,0 +1,240 @@
+/* ═══════════════════════════════════════════════════════════════
+   templatecss.css — UNIVERSAL design-system template (CANONICAL)
+   Self-contained: --z-* tokens, .z-* primitives, faction theming.
+   No app files required — drop into any project as-is.
+
+   Optional TS companion: cssScripts.ts mirrors the palette 1:1 and
+   ships the ZButton/ZOverlay/ZConfirmDialog runtime — keep the two
+   in sync when editing tokens. This file is CSS only: all logic
+   belongs in the companion.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── palette ─────────────────────────────────────────── */
+  --z-bg-dark: #030305;
+  --z-bg-card: #0d0d14;
+  --z-bg-input: #0a0a12;
+  --z-text-primary: #e2e8f0;
+  --z-text-secondary: #64748b;
+  --z-text-muted: #94a3b8;
+  --z-accent: #a855f7;
+
+  /* ── semantic ────────────────────────────────────────── */
+  --z-success: #3fb950;
+  --z-warn: #d29922;
+  --z-danger: #f85149;
+
+  /* ── borders / shape ─────────────────────────────────── */
+  --z-border-default: rgba(168, 85, 247, 0.3);
+  --z-border-muted: rgba(168, 85, 247, 0.1);
+  --z-radius: 8px;
+  --z-radius-sm: 4px;
+  --z-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+
+  /* ── typography ──────────────────────────────────────── */
+  --z-font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --z-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  /* ── default hero theme (Hellshift purple) until a
+        [data-faction] root is applied via cssScripts ───── */
+  --hero-color: #a855f7;
+  --hero-bright: #d8b4fe;
+  --hero-glow: rgba(168, 85, 247, 0.6);
+}
+
+/* ── faction theming ────────────────────────────────────────── */
+[data-faction="Voltkin"] { --hero-color: #ef4444; --hero-bright: #fca5a5; --hero-glow: rgba(239, 68, 68, 0.6); }
+[data-faction="Ashbeam"] { --hero-color: #3b82f6; --hero-bright: #93c5fd; --hero-glow: rgba(59, 130, 246, 0.6); }
+[data-faction="Crypsis"] { --hero-color: #f59e0b; --hero-bright: #fde68a; --hero-glow: rgba(245, 158, 11, 0.6); }
+[data-faction="Spectra"] { --hero-color: #22d3ee; --hero-bright: #a5f3fc; --hero-glow: rgba(34, 211, 238, 0.6); }
+[data-faction="Hellshift"] { --hero-color: #a855f7; --hero-bright: #d8b4fe; --hero-glow: rgba(168, 85, 247, 0.6); }
+[data-faction="Kailin"] { --hero-color: #6b7280; --hero-bright: #d1d5db; --hero-glow: rgba(107, 114, 128, 0.6); }
+
+/* ── animation primitives ───────────────────────────────────── */
+@keyframes zPbarSheen { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
+@keyframes zXpBarSheen { 0% { transform: translateY(100%); } 100% { transform: translateY(-200%); } }
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE ELEMENTS
+   ═══════════════════════════════════════════════════════════════ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  font: 14px/1.5 var(--z-font-ui);
+  background: var(--z-bg-dark);
+  color: var(--z-text-primary);
+}
+#app { height: 100%; display: flex; }
+button { cursor: pointer; font: inherit; }
+input, textarea, select {
+  font: inherit;
+  color: var(--z-text-primary);
+  background: var(--z-bg-input);
+  border: 1px solid var(--z-border-default);
+  border-radius: var(--z-radius-sm);
+  padding: 6px 10px;
+  outline: 0;
+}
+input:focus, textarea:focus { border-color: var(--z-accent); }
+textarea { resize: vertical; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--z-border-default); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--z-text-muted); }
+
+/* ═══════════════════════════════════════════════════════════════
+   PRIMITIVES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Progress bar — indeterminate loader / stat fill
+   Usage: style="--v:30%; --h:3px; --c:var(--hero-color); --b:var(--hero-bright)" */
+.z-pbar {
+  height: var(--h, 16px);
+  border: 1px solid var(--c, var(--hero-color, #a855f7))44;
+  background: #000;
+  overflow: hidden;
+  position: relative;
+}
+.z-pbar__f {
+  height: 100%;
+  width: var(--v, 0%);
+  background: linear-gradient(90deg, var(--c, var(--hero-color)) 0%, var(--b, var(--hero-bright)) 60%, var(--c, var(--hero-color)) 100%);
+  box-shadow: 0 0 18px var(--c, var(--hero-glow));
+  transition: width .1s linear;
+  position: relative;
+  overflow: hidden;
+}
+.z-pbar__f::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, .4) 50%, transparent 100%);
+  animation: zPbarSheen 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.z-pbar__l {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+}
+
+/* Badge — pill tag / count */
+.z-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #000000d9;
+  border: 1px solid var(--hero-color, #a855f7);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-family: var(--z-font-mono, monospace);
+  font-weight: 700;
+  font-size: 10px;
+}
+
+/* Button — mono, hard-edged, faction-aware (ZButton variants) */
+.z-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--z-font-mono, monospace);
+  font-weight: 700;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .12s ease;
+  line-height: 1;
+  border: 1px solid var(--z-border-default);
+  background: transparent;
+  color: var(--z-text-primary);
+  font-size: 12px;
+  padding: 7px 14px;
+}
+.z-btn--mini { font-size: 11px; padding: 4px 10px; }
+.z-btn--primary { background: var(--z-accent); border-color: var(--z-accent); color: #fff; }
+.z-btn--primary:hover:not(.disabled) { background: var(--hero-bright); border-color: var(--hero-bright); color: #000; }
+.z-btn--ghost { background: transparent; border-color: var(--z-border-default); color: var(--z-text-primary); }
+.z-btn--ghost:hover:not(.disabled) { border-color: var(--z-accent); color: var(--z-accent); }
+.z-btn--danger { background: transparent; border-color: var(--z-danger); color: var(--z-danger); }
+.z-btn--danger:hover:not(.disabled) { background: var(--z-danger); color: #fff; }
+.z-btn.disabled { opacity: .4; cursor: default; }
+
+/* Toggle switch */
+.z-tog {
+  width: 36px;
+  height: 20px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 10px;
+  background: var(--z-bg-input);
+  border: 1px solid var(--z-border-default);
+  transition: background .15s, border-color .15s;
+  outline: 0;
+}
+.z-tog::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--z-text-muted);
+  transition: transform .15s, background .15s;
+}
+.z-tog:checked {
+  background: var(--z-accent);
+  border-color: var(--z-accent);
+}
+.z-tog:checked::after {
+  transform: translateX(16px);
+  background: #fff;
+}
+
+/* Overlay + confirm dialog (ZOverlay / ZConfirmDialog)
+   z-index 300 → sits above app overlays (chat 100, fullscreen 200, prompt bar 250) */
+.zo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+.zo__p {
+  background: var(--z-bg-card, #0d0d14);
+  border: 1px solid var(--z-border-default);
+  border-radius: 8px;
+  box-shadow: var(--z-shadow);
+}
+.zc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 26px;
+}
+.zc h3 {
+  font-family: var(--z-font-mono, monospace);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--z-text-primary);
+}
+.zc p {
+  font-size: 12px;
+  color: var(--z-text-secondary);
+  max-width: 320px;
+  text-align: center;
+}
+.zc > div { display: flex; gap: 8px; }

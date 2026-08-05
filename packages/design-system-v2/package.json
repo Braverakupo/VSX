@@ -1,0 +1,13 @@
+{
+  "name": "@vs/design-system-v2",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "design-system-v2.js",
+  "exports": {
+    ".": "./design-system-v2.js"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  }
+}
