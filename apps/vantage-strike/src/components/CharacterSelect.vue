@@ -175,7 +175,8 @@ onMounted(async () => {
   to { opacity: .9; }
 }
 
-/* Character art — full background render, slid slightly to the left so the
+/* Character art — scaled to 70% and started below the top navigation bar so
+   the pilot's head reads clear of the nav. Slid slightly to the left so the
    pilot sits clear of the dossier panel and reads as breaking out of frame */
 .cs-art {
   position: absolute;
@@ -184,8 +185,9 @@ onMounted(async () => {
   transform: translateX(-26px);
 }
 .cs-art img {
-  width: 100%;
-  height: 100%;
+  width: 70%;
+  height: 70%;
+  margin-top: 64px; /* start below the top navigation bar */
   object-fit: cover;
   object-position: center 16%;
 }
