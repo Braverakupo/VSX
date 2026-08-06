@@ -165,6 +165,32 @@ function onArtLoad() {
   layoutArt()
 }
 
+// ── Dev helper: copy the current art position ──
+// Copies "<hero> <left> <top> <zoom>" so the user can paste a starting point
+// into code (left/top are px relative to the art area; zoom = rendered/natural)
+const copied = ref(false)
+let copyTimer: ReturnType<typeof setTimeout> | null = null
+async function copyPosition() {
+  const hero = selected.value
+  const zoom = imgW && artImg.value?.naturalWidth ? imgW / artImg.value.naturalWidth : 0
+  const text = `${hero} ${Math.round(posLeft.value)} ${Math.round(posTop.value)} ${zoom.toFixed(3)}`
+  try {
+    await navigator.clipboard.writeText(text)
+  } catch {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    ta.remove()
+  }
+  copied.value = true
+  if (copyTimer) clearTimeout(copyTimer)
+  copyTimer = setTimeout(() => { copied.value = false }, 1200)
+}
+
 let panStartX = 0
 let panStartY = 0
 let panStartLeft = 0
@@ -257,6 +283,10 @@ onBeforeUnmount(() => {
       </div>
       <div class="cs-swirl"></div>
       <div class="cs-shade"></div>
+      <!-- Dev helper: copies current art position (hero left top zoom) -->
+      <button class="cs-copy-pos" :class="{ copied }" @click="copyPosition" title="Copy image position">
+        {{ copied ? '✓ Copied' : 'Copy pos' }}
+      </button>
     </div>
 
     <!-- ══ Select UI overlay — scrolls away over the pinned art ══ -->
@@ -408,6 +438,38 @@ onBeforeUnmount(() => {
   background:
     linear-gradient(to top, rgba(3,3,5,.85) 0%, rgba(3,3,5,.25) 32%, transparent 60%),
     linear-gradient(to right, rgba(3,3,5,.6) 0%, transparent 30%);
+}
+
+/* Dev helper chip — floats top-center over the art area */
+.cs-copy-pos {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-family: var(--z-font-mono, monospace);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(10,10,16,.6);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  color: var(--z-text-secondary, #94a3b8);
+  cursor: pointer;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+.cs-copy-pos:hover {
+  color: var(--hero-bright, #93c5fd);
+  border-color: var(--hero-color, #3b82f6);
+  background: rgba(16,16,26,.75);
+}
+.cs-copy-pos.copied {
+  color: #4ade80;
+  border-color: rgba(74,222,128,.55);
 }
 
 /* ── Select UI overlay — absolutely positioned over the pinned art area, so
