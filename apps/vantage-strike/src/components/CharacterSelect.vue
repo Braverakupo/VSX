@@ -92,8 +92,8 @@ function setStart() {
 
 // ── Dev helper: copy the current art position ──
 // Copies "<hero> <left> <top> <zoom>" so the user can paste a starting point
-// into code. left/top are px relative to the art area; zoom is the static
-// image scale (always 1.000 since the art is never resized)
+// into code. left/top are px relative to the art area; zoom is the fixed
+// static scale of the art (1.250× since the image is never dynamically resized)
 const copied = ref(false)
 let copyTimer: ReturnType<typeof setTimeout> | null = null
 async function copyPosition() {
@@ -328,7 +328,7 @@ onBeforeUnmount(() => {
   inset: 0;
   z-index: 2;
   cursor: grab;
-  touch-action: pan-y; /* vertical page scroll still works on touch */
+  touch-action: none; /* both-axis panning — vertical drag must reach the image */
   overflow: hidden;
 }
 .cs-art.is-panning {
@@ -338,8 +338,9 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 1376px; /* fixed natural size — never resized at runtime */
-  height: 768px;
+  width: 1720px; /* fixed 1.25× size — never resized at runtime; tall enough
+                    for real vertical drag range on typical windows */
+  height: 960px;
   max-width: none; /* override global img { max-width: 100% } reset */
   max-height: none;
   -webkit-user-drag: none;
