@@ -52,13 +52,13 @@ const heroArt = computed(() => BASE + (HERO_ART[selected.value] ?? HERO_ART.Ashb
 //    screens where the art overflows vertically ──
 const artImg = ref<HTMLImageElement | null>(null)
 const panX = ref(15) // object-position X % — matches the original 15% anchor
-const panY = ref(50) // object-position Y % — 'center'
+const panY = ref(0) // object-position Y % — top-anchored default (image starts at y=0 of the art div)
 const panning = ref(false)
 
 let panStartX = 0
 let panStartY = 0
 let panStartPx = 15
-let panStartPy = 50
+let panStartPy = 0
 function artDown(e: PointerEvent) {
   panning.value = true
   panStartX = e.clientX
@@ -105,7 +105,7 @@ function selectHero(hero: string, resetBar = true) {
   selected.value = hero
   if (resetBar) {
     panX.value = 15
-    panY.value = 50
+    panY.value = 0
   }
   emit('select', hero)
   nextTick(() => applyTheme(rootRef.value, hero))
@@ -286,8 +286,9 @@ onBeforeUnmount(() => {
   height: 100%;
   object-fit: cover;
   /* Wide bar art (1376×768) shown cropped; the crop anchor defaults to the
-     left portion so the character fills the screen — drag to pan it around */
-  object-position: 15% center;
+     left portion, top-aligned so the image starts at the top edge of the art
+     div — drag to pan it around */
+  object-position: 15% 0%;
   -webkit-user-drag: none;
 }
 
