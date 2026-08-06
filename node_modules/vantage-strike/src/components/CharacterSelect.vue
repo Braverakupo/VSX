@@ -45,10 +45,9 @@ const HERO_ART: Record<string, string> = {
 }
 const heroArt = computed(() => BASE + (HERO_ART[selected.value] ?? HERO_ART.Ashbeam))
 
-// Per-hero initial start point (px from the art area's top-left). The art
-// image is static — fixed size, never auto-zoomed or auto-repositioned — it
-// only moves when you drag it. Drag to a spot, hit Copy pos, and drop new
-// values into this map.
+// Per-hero initial start point in REFERENCE space (px from the art area's
+// top-left, as copied with the Copy pos button). Drag to a spot, hit Copy
+// pos, and drop new values into this map.
 const HERO_START: Record<string, { x: number; y: number }> = {
   Ashbeam: { x: -471, y: -113 },
   Voltkin: { x: -531, y: -113 },
@@ -58,49 +57,75 @@ const HERO_START: Record<string, { x: number; y: number }> = {
   Kailin: { x: -644, y: -96 }
 }
 
-// ── Static art + drag-to-pan ──
-// The img has a fixed CSS size (1376×768 = natural) and sits absolutely;
-// left/top change only while the user drags. The initial position per hero
-// comes from HERO_START. No runtime resizing or reframing.
+// Reference art-area size at which HERO_START was captured (desktop window).
+// The whole scene — image size AND offsets — scales uniformly with the art
+// area via k, so the character keeps the same relative spot as the window
+// scales. If you re-capture positions at a different window size, update
+// REF_ART to that size so k=1 matches your capture.
+const REF_ART = { w: 752, h: 737 }
+const BASE_IMG = { w: 1720, h: 960 } // 1376×768 natural × 1.25
+
+// ── Proportional art + drag-to-pan ──
+// The img renders at BASE_IMG × k where k = min(1, artW/REF.w, artH/REF.h):
+// the composition zooms out with the window but stays at the same relative
+// spot. Offsets live in reference space; only the rendered px multiply by k.
+// Dragging pans 1:1 on screen and updates the reference-space offset.
+const artHost = ref<HTMLElement | null>(null)
 const artImg = ref<HTMLImageElement | null>(null)
-const posLeft = ref(0) // img left (px) relative to the art area
-const posTop = ref(0) // img top (px) relative to the art area
+const k = ref(1) // uniform scale (≤ 1 — never upscales)
+const refLeft = ref(0) // offset in reference space (px)
+const refTop = ref(0)
 const panning = ref(false)
+let resizeObserver: ResizeObserver | null = null
 
 function applyPos() {
   const img = artImg.value
-  const host = img?.parentElement
+  const host = artHost.value ?? img?.parentElement
   if (!img || !host) return
   const boxW = host.clientWidth
   const boxH = host.clientHeight
-  const imgW = img.clientWidth // fixed CSS size
-  const imgH = img.clientHeight
-  const left = Math.min(0, Math.max(boxW - imgW, posLeft.value))
-  const top = Math.min(0, Math.max(boxH - imgH, posTop.value))
-  posLeft.value = left
-  posTop.value = top
+  if (!boxW || !boxH) return
+  const imgW = BASE_IMG.w * k.value
+  const imgH = BASE_IMG.h * k.value
+  img.style.width = imgW + 'px'
+  img.style.height = imgH + 'px'
+  const left = Math.min(0, Math.max(boxW - imgW, refLeft.value * k.value))
+  const top = Math.min(0, Math.max(boxH - imgH, refTop.value * k.value))
   img.style.left = left + 'px'
   img.style.top = top + 'px'
 }
 
+function updateScale() {
+  const host = artHost.value
+  if (!host) return
+  const w = host.clientWidth
+  const h = host.clientHeight
+  if (!w || !h) return
+  // zoom out with the window (proportional to the reference capture size),
+  // but never below what's needed to keep the image covering the art area
+  // (no black gaps on very portrait screens)
+  const zoomK = Math.min(1, w / REF_ART.w, h / REF_ART.h)
+  const coverK = Math.max(w / BASE_IMG.w, h / BASE_IMG.h)
+  k.value = Math.max(zoomK, coverK)
+  applyPos()
+}
+
 function setStart() {
   const s = HERO_START[selected.value]
-  posLeft.value = s ? s.x : 0
-  posTop.value = s ? s.y : 0
+  refLeft.value = s ? s.x : 0
+  refTop.value = s ? s.y : 0
   applyPos()
 }
 
 // ── Dev helper: copy the current art position ──
-// Copies "<hero> <left> <top> <zoom>" so the user can paste a starting point
-// into code. left/top are px relative to the art area; zoom is the fixed
-// static scale of the art (1.250× since the image is never dynamically resized)
+// Copies "<hero> <left> <top> <zoom>" in REFERENCE space (so pasting back
+// into HERO_START works at any window). zoom = 1.250 × k.
 const copied = ref(false)
 let copyTimer: ReturnType<typeof setTimeout> | null = null
 async function copyPosition() {
   const hero = selected.value
-  const img = artImg.value
-  const zoom = img && img.naturalWidth ? img.clientWidth / img.naturalWidth : 1
-  const text = `${hero} ${Math.round(posLeft.value)} ${Math.round(posTop.value)} ${zoom.toFixed(3)}`
+  const zoom = (BASE_IMG.w / 1376) * k.value
+  const text = `${hero} ${Math.round(refLeft.value)} ${Math.round(refTop.value)} ${zoom.toFixed(3)}`
   try {
     await navigator.clipboard.writeText(text)
   } catch {
@@ -126,15 +151,16 @@ function artDown(e: PointerEvent) {
   panning.value = true
   panStartX = e.clientX
   panStartY = e.clientY
-  panStartLeft = posLeft.value
-  panStartTop = posTop.value
+  panStartLeft = refLeft.value
+  panStartTop = refTop.value
   ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
   e.preventDefault()
 }
 function artMove(e: PointerEvent) {
   if (!panning.value) return
-  posLeft.value = panStartLeft + (e.clientX - panStartX)
-  posTop.value = panStartTop + (e.clientY - panStartY)
+  const inv = k.value || 1
+  refLeft.value = panStartLeft + (e.clientX - panStartX) / inv
+  refTop.value = panStartTop + (e.clientY - panStartY) / inv
   applyPos()
 }
 function artUp() {
@@ -187,11 +213,18 @@ onMounted(async () => {
   applyTheme(rootRef.value, selected.value)
   emit('select', selected.value)
   window.addEventListener('keydown', onKey)
+  updateScale()
   setStart()
+  if (artHost.value) {
+    resizeObserver = new ResizeObserver(() => updateScale())
+    resizeObserver.observe(artHost.value)
+  }
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
+  resizeObserver?.disconnect()
+  resizeObserver = null
 })
 </script>
 
@@ -199,7 +232,7 @@ onBeforeUnmount(() => {
   <div ref="rootRef" class="cs-page">
     <!-- ══ Pinned character art — never scrolls with the page ══ -->
     <div class="cs-pin">
-      <div class="cs-art" :class="{ 'is-panning': panning }" @pointerdown="artDown" @pointermove="artMove" @pointerup="artUp" @pointercancel="artUp">
+      <div ref="artHost" class="cs-art" :class="{ 'is-panning': panning }" @pointerdown="artDown" @pointermove="artMove" @pointerup="artUp" @pointercancel="artUp">
         <img ref="artImg" :src="heroArt" :alt="selected + ' render'" draggable="false" @error="hideImg" />
       </div>
       <div class="cs-swirl"></div>
@@ -338,8 +371,8 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 1720px; /* fixed 1.25× size — never resized at runtime; tall enough
-                    for real vertical drag range on typical windows */
+  width: 1720px; /* base 1.25× size (1376×768 natural); JS scales it down
+                    proportionally with the art area via k (≤ 1) */
   height: 960px;
   max-width: none; /* override global img { max-width: 100% } reset */
   max-height: none;
