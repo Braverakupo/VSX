@@ -45,48 +45,144 @@ const HERO_ART: Record<string, string> = {
 }
 const heroArt = computed(() => BASE + (HERO_ART[selected.value] ?? HERO_ART.Ashbeam))
 
-// ── Drag-to-pan: grab the character art and slide the visible crop around
-//    (photo-viewer style). The bars are wide 1376×768 landscape strips shown
-//    cropped to the portrait-ish screen via object-fit: cover, so a horizontal
-//    drag pans along the strip; vertical pan only engages on very short
-//    screens where the art overflows vertically ──
+// ── Content-aware framing ──
+// The bar strips are wide 1376×768 landscape renders with baked-in cinematic
+// black bars at the top and bottom, so the character art only occupies the
+// middle band. Instead of showing the full strip (which leaves black bands
+// inside the art area), we measure the bright (non-black) content of each
+// image once, zoom so that band fills the art area's height, and center the
+// content's middle in the art area. The user can still grab and pan the
+// zoomed view (photo-viewer style) ──
+const artHost = ref<HTMLElement | null>(null)
 const artImg = ref<HTMLImageElement | null>(null)
-const panX = ref(15) // object-position X % — matches the original 15% anchor
-const panY = ref(0) // object-position Y % — top-anchored default (image starts at y=0 of the art div)
+
+const posLeft = ref(0) // img left (px) relative to the art area
+const posTop = ref(0) // img top (px) relative to the art area
 const panning = ref(false)
+let imgW = 0 // rendered img size (px)
+let imgH = 0
+let boxW = 0 // art area size (px)
+let boxH = 0
+
+const CONTENT_LUM_THRESH = 28 // same threshold as the bbox analysis scripts
+const MAX_ZOOM_RATIO = 2 // cap so a nearly-empty image can't blow up
+
+interface ContentBox {
+  x0: number; y0: number; x1: number; y1: number
+  cx: number; cy: number
+}
+const contentCache = new Map<string, ContentBox | null>()
+
+async function measureContent(src: string): Promise<ContentBox | null> {
+  if (contentCache.has(src)) return contentCache.get(src) ?? null
+  const measure = async (): Promise<ContentBox | null> => {
+    const img = new Image()
+    img.src = src
+    await img.decode().catch(() => null)
+    if (!img.naturalWidth) return null
+    const c = document.createElement('canvas')
+    c.width = img.naturalWidth
+    c.height = img.naturalHeight
+    const ctx = c.getContext('2d', { willReadFrequently: true })
+    if (!ctx) return null
+    ctx.drawImage(img, 0, 0)
+    const { data } = ctx.getImageData(0, 0, c.width, c.height)
+    const w = c.width
+    const h = c.height
+    let minX = w, maxX = 0, minY = h, maxY = 0, count = 0
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const i = (y * w + x) * 4
+        const lum = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]
+        if (lum > CONTENT_LUM_THRESH) {
+          count++
+          if (x < minX) minX = x
+          if (x > maxX) maxX = x
+          if (y < minY) minY = y
+          if (y > maxY) maxY = y
+        }
+      }
+    }
+    if (count === 0) return null
+    return {
+      x0: minX, y0: minY, x1: maxX, y1: maxY,
+      cx: (minX + maxX) / 2, cy: (minY + maxY) / 2
+    }
+  }
+  const result = await measure()
+  contentCache.set(src, result)
+  return result
+}
+
+function applyPos() {
+  const img = artImg.value
+  if (!img) return
+  const left = Math.min(0, Math.max(boxW - imgW, posLeft.value))
+  const top = Math.min(0, Math.max(boxH - imgH, posTop.value))
+  posLeft.value = left
+  posTop.value = top
+  img.style.left = left + 'px'
+  img.style.top = top + 'px'
+}
+
+let layoutSeq = 0
+let resizeObserver: ResizeObserver | null = null
+
+async function layoutArt() {
+  const img = artImg.value
+  const host = artHost.value
+  if (!img || !host || !img.naturalWidth) return
+  const want = new URL(heroArt.value, document.baseURI).href
+  if (img.currentSrc && img.currentSrc !== want) return // stale image swap
+  boxW = host.clientWidth
+  boxH = host.clientHeight
+  if (!boxW || !boxH) return
+  const W = img.naturalWidth
+  const H = img.naturalHeight
+  const seq = ++layoutSeq
+  const bbox = await measureContent(img.currentSrc || img.src)
+  if (seq !== layoutSeq) return
+  const coverS = Math.max(boxW / W, boxH / H)
+  let s = coverS
+  if (bbox) {
+    const contentH = bbox.y1 - bbox.y0 + 1
+    // zoom so the non-black content fills the art-area height (crops the
+    // baked-in cinematic bars), never less than a plain cover
+    s = Math.max(s, Math.min(boxH / contentH, coverS * MAX_ZOOM_RATIO))
+  }
+  imgW = W * s
+  imgH = H * s
+  img.style.width = imgW + 'px'
+  img.style.height = imgH + 'px'
+  const cx = bbox ? bbox.cx : W / 2
+  const cy = bbox ? bbox.cy : H / 2
+  posLeft.value = boxW / 2 - cx * s
+  posTop.value = boxH / 2 - cy * s
+  applyPos()
+}
+
+function onArtLoad() {
+  layoutArt()
+}
 
 let panStartX = 0
 let panStartY = 0
-let panStartPx = 15
-let panStartPy = 0
+let panStartLeft = 0
+let panStartTop = 0
 function artDown(e: PointerEvent) {
   panning.value = true
   panStartX = e.clientX
   panStartY = e.clientY
-  panStartPx = panX.value
-  panStartPy = panY.value
+  panStartLeft = posLeft.value
+  panStartTop = posTop.value
   ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
   e.preventDefault()
 }
 function artMove(e: PointerEvent) {
   if (!panning.value) return
-  const img = artImg.value
-  const host = e.currentTarget as HTMLElement
-  if (!img || !img.naturalWidth) return
-  // cover-scale math: how many px of the image overflow the frame on each axis
-  const s = Math.max(host.clientWidth / img.naturalWidth, host.clientHeight / img.naturalHeight)
-  const ox = img.naturalWidth * s - host.clientWidth
-  const oy = img.naturalHeight * s - host.clientHeight
-  const dx = e.clientX - panStartX
-  const dy = e.clientY - panStartY
-  if (ox > 0) {
-    const visibleLeft = (panStartPx / 100) * ox
-    panX.value = Math.min(100, Math.max(0, ((visibleLeft - dx) / ox) * 100))
-  }
-  if (oy > 0) {
-    const visibleTop = (panStartPy / 100) * oy
-    panY.value = Math.min(100, Math.max(0, ((visibleTop - dy) / oy) * 100))
-  }
+  posLeft.value = panStartLeft + (e.clientX - panStartX)
+  posTop.value = panStartTop + (e.clientY - panStartY)
+  applyPos()
 }
 function artUp() {
   panning.value = false
@@ -100,15 +196,14 @@ function portraitFor(hero: string): string {
   return portraits && portraits.length ? portraits[0] : ''
 }
 
-function selectHero(hero: string, resetBar = true) {
+function selectHero(hero: string) {
   if (selected.value === hero) return
   selected.value = hero
-  if (resetBar) {
-    panX.value = 15
-    panY.value = 0
-  }
   emit('select', hero)
-  nextTick(() => applyTheme(rootRef.value, hero))
+  nextTick(() => {
+    applyTheme(rootRef.value, hero)
+    layoutArt() // re-frame around the new image's content
+  })
 }
 
 function onKey(e: KeyboardEvent) {
@@ -139,10 +234,17 @@ onMounted(async () => {
   applyTheme(rootRef.value, selected.value)
   emit('select', selected.value)
   window.addEventListener('keydown', onKey)
+  layoutArt()
+  if (artHost.value) {
+    resizeObserver = new ResizeObserver(() => layoutArt())
+    resizeObserver.observe(artHost.value)
+  }
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
+  resizeObserver?.disconnect()
+  resizeObserver = null
 })
 </script>
 
@@ -150,8 +252,8 @@ onBeforeUnmount(() => {
   <div ref="rootRef" class="cs-page">
     <!-- ══ Pinned character art — never scrolls with the page ══ -->
     <div class="cs-pin">
-      <div class="cs-art" :class="{ 'is-panning': panning }" @pointerdown="artDown" @pointermove="artMove" @pointerup="artUp" @pointercancel="artUp">
-        <img ref="artImg" :src="heroArt" :style="{ objectPosition: panX + '% ' + panY + '%' }" :alt="selected + ' render'" draggable="false" @error="hideImg" />
+      <div ref="artHost" class="cs-art" :class="{ 'is-panning': panning }" @pointerdown="artDown" @pointermove="artMove" @pointerup="artUp" @pointercancel="artUp">
+        <img ref="artImg" :src="heroArt" :alt="selected + ' render'" draggable="false" @load="onArtLoad" @error="hideImg" />
       </div>
       <div class="cs-swirl"></div>
       <div class="cs-shade"></div>
@@ -268,27 +370,32 @@ onBeforeUnmount(() => {
 }
 @keyframes cs-swirl-rotate { to { transform: rotate(360deg); } }
 
-/* Character art — full size (100% of the pinned area), centered on screen,
-   and fully visible (object-fit: contain — never cropped). Starts at the top
-   bar's bottom edge */
+/* Character art — fills the pinned area. The script measures each image's
+   non-black content, zooms so that content fills the art-area height (cropping
+   the baked-in cinematic bars), and centers it in the art area */
 .cs-art {
   position: absolute;
   inset: 0;
   z-index: 2;
   cursor: grab;
   touch-action: pan-y; /* vertical page scroll still works on touch */
+  overflow: hidden;
 }
 .cs-art.is-panning {
   cursor: grabbing;
 }
 .cs-art img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  max-width: none; /* override global img { max-width: 100% } reset */
+  max-height: none;
   object-fit: cover;
-  /* Wide bar art (1376×768) shown cropped; the crop anchor defaults to the
-     left portion, top-aligned so the image starts at the top edge of the art
-     div — drag to pan it around */
-  object-position: 15% 0%;
+  /* Fallback framing while the content measurement runs; layoutArt() then
+     sets the exact zoomed size and centered position inline */
+  object-position: 50% 50%;
   -webkit-user-drag: none;
 }
 
