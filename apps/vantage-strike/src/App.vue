@@ -29,7 +29,7 @@ const showSettings = ref(false)
 // ── Navigation ──
 // Two sections: the character select (which hosts all lore below it) and
 // the active game screen.
-const section = ref<NavSection>('play')
+const section = ref<NavSection>('characters') // TEMP-SCREENSHOT
 const charSelectHero = ref('Ashbeam')
 
 function onNavigate(target: NavSection) {
