@@ -45,6 +45,18 @@ const HERO_ART: Record<string, string> = {
 }
 const heroArt = computed(() => BASE + (HERO_ART[selected.value] ?? HERO_ART.Ashbeam))
 
+// Per-hero initial framing (px from the art area's top-left), captured with
+// the Copy pos button. Zoom stays content-derived so the art always covers
+// the area; these offsets are clamped to the cover bounds in applyPos.
+const HERO_START: Record<string, { x: number; y: number }> = {
+  Ashbeam: { x: -368, y: -99 },
+  Voltkin: { x: -337, y: -75 },
+  Crypsis: { x: -236, y: -59 },
+  Spectra: { x: -259, y: -54 },
+  Hellshift: { x: -360, y: -40 },
+  Kailin: { x: -354, y: -44 }
+}
+
 // ── Content-aware framing ──
 // The bar strips are wide 1376×768 landscape renders with baked-in cinematic
 // black bars at the top and bottom, so the character art only occupies the
@@ -154,10 +166,19 @@ async function layoutArt() {
   imgH = H * s
   img.style.width = imgW + 'px'
   img.style.height = imgH + 'px'
-  const cx = bbox ? bbox.cx : W / 2
-  const cy = bbox ? bbox.cy : H / 2
-  posLeft.value = boxW / 2 - cx * s
-  posTop.value = boxH / 2 - cy * s
+  const start = HERO_START[selected.value]
+  if (start) {
+    // explicit per-hero starting point (px from the art area's top-left);
+    // applyPos clamps it to the cover bounds at the current window size
+    posLeft.value = start.x
+    posTop.value = start.y
+  } else {
+    // fallback: center the measured content in the art area
+    const cx = bbox ? bbox.cx : W / 2
+    const cy = bbox ? bbox.cy : H / 2
+    posLeft.value = boxW / 2 - cx * s
+    posTop.value = boxH / 2 - cy * s
+  }
   applyPos()
 }
 
