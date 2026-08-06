@@ -50,12 +50,12 @@ const heroArt = computed(() => BASE + (HERO_ART[selected.value] ?? HERO_ART.Ashb
 // only moves when you drag it. Drag to a spot, hit Copy pos, and drop new
 // values into this map.
 const HERO_START: Record<string, { x: number; y: number }> = {
-  Ashbeam: { x: -368, y: -99 },
-  Voltkin: { x: -337, y: -75 },
-  Crypsis: { x: -236, y: -59 },
-  Spectra: { x: -259, y: -54 },
-  Hellshift: { x: -360, y: -40 },
-  Kailin: { x: -354, y: -44 }
+  Ashbeam: { x: -471, y: -113 },
+  Voltkin: { x: -531, y: -113 },
+  Crypsis: { x: -352, y: -80 },
+  Spectra: { x: -340, y: -78 },
+  Hellshift: { x: -588, y: -68 },
+  Kailin: { x: -644, y: -96 }
 }
 
 // ── Static art + drag-to-pan ──
