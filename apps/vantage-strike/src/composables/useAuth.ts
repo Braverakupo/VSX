@@ -4,14 +4,21 @@ import { clearSaveData } from './useGameState'
 /**
  * Auth state + API client for the Vantage Strike account system.
  * Server owns the real sessions (server/sessions table); the client only
- * persists the session token (localStorage) and calls /api/* relative
- * to the current origin (dev: vite.server.proxy → server/auth.ts).
+ * persists the session token (localStorage).
+ *
+ * API base resolution:
+ *  - VITE_API_BASE set at build time  -> call that host (production: hosted server)
+ *  - unset                            -> relative /api/* (dev: vite.server.proxy
+ *                                        → server/auth.ts; static hosts return 405)
  */
 
 export interface AuthUser {
   id: number
   username: string
 }
+
+// Build-time API origin (e.g. https://vsx-api.onrender.com). Empty = same-origin /api/*.
+const API_BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/+$/, '')
 
 const TOKEN_KEY = 'vs_auth_token'
 
@@ -44,7 +51,7 @@ async function api(path: string, body?: unknown): Promise<{ user?: AuthUser; tok
   if (token.value) headers['X-Auth-Token'] = token.value
   let res: Response
   try {
-    res = await fetch('/api' + path, {
+    res = await fetch(API_BASE + '/api' + path, {
       method: body === undefined ? 'GET' : 'POST',
       headers,
       body: body === undefined ? undefined : JSON.stringify(body)
@@ -54,7 +61,14 @@ async function api(path: string, body?: unknown): Promise<{ user?: AuthUser; tok
   }
   let json: { user?: AuthUser; token?: string; error?: string; save?: unknown; updatedAt?: number } = {}
   try { json = await res.json() } catch { /* 204 no body */ }
-  if (!res.ok) throw new Error(json.error ?? `Request failed (${res.status})`)
+  if (!res.ok) {
+    throw new Error(
+      json.error ??
+      (res.status === 405 || res.status === 404
+        ? 'Account server is not connected to this site (static hosting has no /api).'
+        : `Request failed (${res.status})`)
+    )
+  }
   return json
 }
 

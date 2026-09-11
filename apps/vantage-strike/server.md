@@ -96,8 +96,9 @@ git worktree remove --force .deploy-ghpages
   but the account UI (login/register/cloud-save) will show errors on the live site until the
   backend runs somewhere reachable. Options, in order of effort:
   1. Host `server/auth.ts` on an always-on Node host (Render/Railway/Fly, free tiers; the
-     Linux `better-sqlite3` prebuild exists). Then point the client at an absolute API base
-     (CORS is already enabled server-side) — the client currently calls relative `/api/*`.
+     Linux `better-sqlite3` prebuild exists). Build the client with
+     `VITE_API_BASE=https://your-host` — `useAuth.ts` then calls that origin (CORS is
+     already `*` server-side). Unset = relative `/api/*` (dev proxy / static 405).
   2. Gate the auth UI behind a build flag for Pages-only releases.
 - **Privacy:** GH Pages project sites are public-only on the free plan; private Pages
   requires GitHub Pro ($4/mo). A free alternative for a *really* private deployment is
