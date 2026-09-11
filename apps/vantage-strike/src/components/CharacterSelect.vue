@@ -3,12 +3,10 @@
 // Rendered inside #game-view, so it is locked to the Main Game width (max 780px).
 //
 // Layout: the large character art is PINNED (sticky) and does not scroll with
-// the page. The select UI (roster sidebar, caption, dossier) scrolls over it,
+// the page. The select UI (roster sidebar, caption) scrolls over it,
 // and ALL lore lives below the characters screen — scroll down to read it.
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { charTemplates, heroThemes, localImages } from '../config/gameData'
-import { CHAR_LORE } from '../config/loreData'
-import { JOB_MEDAL_DEFS } from '../config/jobMedalData'
 import { applyTheme } from '../composables/cssScripts'
 import LandingView from './LandingView.vue'
 
@@ -46,8 +44,7 @@ const HERO_ART: Record<string, string> = {
 const heroArt = computed(() => BASE + (HERO_ART[selected.value] ?? HERO_ART.Ashbeam))
 
 // Per-hero initial start point in REFERENCE space (px from the art area's
-// top-left, as copied with the Copy pos button). Drag to a spot, hit Copy
-// pos, and drop new values into this map.
+// top-left). Drag to a spot, read the img left/top, and drop values here.
 const HERO_START: Record<string, { x: number; y: number }> = {
   Ashbeam: { x: -471, y: -113 },
   Voltkin: { x: -531, y: -113 },
@@ -117,32 +114,6 @@ function setStart() {
   applyPos()
 }
 
-// ── Dev helper: copy the current art position ──
-// Copies "<hero> <left> <top> <zoom>" in REFERENCE space (so pasting back
-// into HERO_START works at any window). zoom = 1.250 × k.
-const copied = ref(false)
-let copyTimer: ReturnType<typeof setTimeout> | null = null
-async function copyPosition() {
-  const hero = selected.value
-  const zoom = (BASE_IMG.w / 1376) * k.value
-  const text = `${hero} ${Math.round(refLeft.value)} ${Math.round(refTop.value)} ${zoom.toFixed(3)}`
-  try {
-    await navigator.clipboard.writeText(text)
-  } catch {
-    const ta = document.createElement('textarea')
-    ta.value = text
-    ta.style.position = 'fixed'
-    ta.style.opacity = '0'
-    document.body.appendChild(ta)
-    ta.select()
-    document.execCommand('copy')
-    ta.remove()
-  }
-  copied.value = true
-  if (copyTimer) clearTimeout(copyTimer)
-  copyTimer = setTimeout(() => { copied.value = false }, 1200)
-}
-
 let panStartX = 0
 let panStartY = 0
 let panStartLeft = 0
@@ -166,10 +137,6 @@ function artMove(e: PointerEvent) {
 function artUp() {
   panning.value = false
 }
-const lore = computed(() => CHAR_LORE[selected.value])
-// Dossier medal grid: 3 rows × 3 columns of Job Medals + titles
-const medals = computed(() => (JOB_MEDAL_DEFS[selected.value] || []).slice(0, 9))
-
 function portraitFor(hero: string): string {
   const portraits = localImages[hero]?.portraits
   return portraits && portraits.length ? portraits[0] : ''
@@ -237,10 +204,6 @@ onBeforeUnmount(() => {
       </div>
       <div class="cs-swirl"></div>
       <div class="cs-shade"></div>
-      <!-- Dev helper: copies current art position (hero left top zoom) -->
-      <button class="cs-copy-pos" :class="{ copied }" @click="copyPosition" title="Copy image position">
-        {{ copied ? '✓ Copied' : 'Copy pos' }}
-      </button>
     </div>
 
     <!-- ══ Select UI overlay — scrolls away over the pinned art ══ -->
@@ -272,36 +235,11 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- Dossier & Stats Panel (right) -->
-        <aside class="cs-dossier">
-          <div class="glass">
-            <div class="d-head">
-              <span class="d-kicker">DOSSIER</span>
-              <span class="d-real">{{ lore.realName }}</span>
-            </div>
-            <dl class="d-facts">
-              <div class="d-fact"><dt>Role</dt><dd>{{ lore.role }}</dd></div>
-              <div class="d-fact"><dt>Mech</dt><dd>{{ lore.mech }}</dd></div>
-              <div class="d-fact"><dt>Tenet</dt><dd>{{ lore.hardcoreTenet }}</dd></div>
-              <div class="d-fact d-fact--quote"><dt>Philosophy</dt><dd>"{{ lore.philosophy }}"</dd></div>
-            </dl>
-            <p class="d-back">{{ lore.background }}</p>
-            <div class="d-medals">
-              <div class="d-medals-label">JOB MEDALS</div>
-              <div class="d-medals-grid">
-                <div v-for="m in medals" :key="m.id" class="d-medal" :title="m.desc">
-                  <span class="d-medal-name">{{ m.name }}</span>
-                  <span class="d-medal-stat">{{ m.stats[0] }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </aside>
       <!-- ══ All lore below the characters screen ══ -->
     </div>
 
     <section class="cs-lore">
-      <LandingView sections-only />
+      <LandingView sections-only :hero="selected" />
     </section>
   </div>
 </template>
@@ -390,42 +328,10 @@ onBeforeUnmount(() => {
     linear-gradient(to right, rgba(3,3,5,.6) 0%, transparent 30%);
 }
 
-/* Dev helper chip — floats top-center over the art area */
-.cs-copy-pos {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  font-family: var(--z-font-mono, monospace);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .8px;
-  text-transform: uppercase;
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(10,10,16,.6);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-  color: var(--z-text-secondary, #94a3b8);
-  cursor: pointer;
-  transition: color .15s ease, border-color .15s ease, background .15s ease;
-}
-.cs-copy-pos:hover {
-  color: var(--hero-bright, #93c5fd);
-  border-color: var(--hero-color, #3b82f6);
-  background: rgba(16,16,26,.75);
-}
-.cs-copy-pos.copied {
-  color: #4ade80;
-  border-color: rgba(74,222,128,.55);
-}
-
 /* ── Select UI overlay — absolutely positioned over the pinned art area, so
    it consumes no flow space and scrolls away while the art stays pinned ──
    pointer-events: none so drags pass through to the art layer beneath;
-   only the three panels (sidebar / caption / dossier) stay interactive ── */
+   only the two panels (sidebar / caption) stay interactive ── */
 .cs-ui {
   position: absolute;
   inset: 0;
@@ -433,8 +339,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 .cs-ui > .cs-side,
-.cs-ui > .cs-caption,
-.cs-ui > .cs-dossier {
+.cs-ui > .cs-caption {
   pointer-events: auto;
 }
 
@@ -574,137 +479,6 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
 }
 
-/* ── Dossier & Stats Panel (right) — translucent glass ── */
-.cs-dossier {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  bottom: 12px;
-  width: 212px;
-  z-index: 6;
-}
-.glass {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 13px 14px;
-  overflow-y: auto;
-  background: rgba(13,13,20,.55);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,.07);
-  border-radius: 12px;
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.04),
-    inset 0 0 26px rgba(0,0,0,.38),
-    0 10px 34px rgba(0,0,0,.55);
-}
-.d-head {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255,255,255,.07);
-}
-.d-kicker {
-  font-family: var(--z-font-mono, monospace);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  color: var(--hero-color, #3b82f6);
-}
-.d-real {
-  font-family: var(--z-font-mono, monospace);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .5px;
-  color: var(--hero-bright, #93c5fd);
-}
-.d-facts {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 0;
-}
-.d-fact dt {
-  font-family: var(--z-font-mono, monospace);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--z-text-secondary, #64748b);
-}
-.d-fact dd {
-  font-size: 11px;
-  line-height: 1.45;
-  color: var(--z-text-primary, #e2e8f0);
-  margin: 1px 0 0;
-}
-.d-fact--quote dd { font-style: italic; color: var(--z-text-muted, #94a3b8); }
-.d-back {
-  font-size: 10.5px;
-  line-height: 1.5;
-  color: var(--z-text-secondary, #64748b);
-  border-top: 1px solid rgba(255,255,255,.06);
-  padding-top: 8px;
-}
-
-/* Job Medals — 3 rows × 3 columns of medals + titles */
-.d-medals {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-top: 1px solid rgba(255,255,255,.06);
-  padding-top: 8px;
-}
-.d-medals-label {
-  font-family: var(--z-font-mono, monospace);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--z-text-secondary, #64748b);
-}
-.d-medals-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-}
-.d-medal {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 6px 3px 5px;
-  background: rgba(255,255,255,.045);
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 6px;
-  min-width: 0;
-  transition: border-color .15s ease, box-shadow .15s ease;
-}
-.d-medal:hover {
-  border-color: var(--hero-color, #3b82f6)66;
-  box-shadow: 0 0 10px var(--hero-glow, rgba(59,130,246,.25));
-}
-.d-medal-name {
-  font-family: var(--z-font-mono, monospace);
-  font-size: 7.5px;
-  font-weight: 800;
-  letter-spacing: .4px;
-  text-transform: uppercase;
-  text-align: center;
-  line-height: 1.15;
-  color: var(--hero-bright, #93c5fd);
-  text-shadow: 0 0 6px var(--hero-glow, rgba(59,130,246,.4));
-}
-.d-medal-stat {
-  font-family: var(--z-font-mono, monospace);
-  font-size: 8px;
-  font-weight: 700;
-  color: var(--z-text-secondary, #64748b);
-}
-
 /* ── All lore below the characters screen ── */
 .cs-lore {
   position: relative;
@@ -717,9 +491,8 @@ onBeforeUnmount(() => {
 }
 
 /* ── Narrow layouts: sidebar stays vertical on the left (no horizontal
-   scroll strip); dossier and caption compact to fit ── */
+   scroll strip); caption compacts to fit ── */
 @media (max-width: 700px) {
-  .cs-dossier { width: 168px; top: 10px; right: 10px; bottom: 10px; }
   .cs-name-big { font-size: clamp(26px, 8vw, 38px); }
   .cs-caption { left: 134px; max-width: 24%; }
 }

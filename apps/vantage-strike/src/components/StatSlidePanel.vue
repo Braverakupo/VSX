@@ -153,7 +153,9 @@ function getPassiveEntries(classDef: any, level: number): string[] {
   if (!keys) return []
   const lvl = Math.max(1, level)
   return keys.map(key => {
-    let baseVal: number | number[] = classDef[key] !== undefined ? classDef[key] : (PASSIVE_BASE[key] || 0.01)
+    // Medal passives always use the uniform base (mirrors medalSystem JOB_PASSIVE_BASE);
+    // classDef values (e.g. preferredStatBonus) are separate per-completion gem perks.
+    let baseVal: number | number[] = PASSIVE_BASE[key] || 0.01
     if (Array.isArray(baseVal)) {
       baseVal = ((baseVal[0] + baseVal[1]) / 2) / 100
     }

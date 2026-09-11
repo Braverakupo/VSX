@@ -68,11 +68,12 @@ export interface GameState {
 /**
  * Serialize and save the full game state.
  */
-export async function saveGame(gameState: GameState, heroRegistry: HeroRegistry): Promise<boolean> {
-  try {
-    const collectedGemsSerialized = gameState.collectedGems instanceof InventoryEntity
-      ? gameState.collectedGems.toJSON()
-      : gameState.collectedGems
+/** Pure serialization of the full game state — shared by local saves
+ *  and account-server sync (autosave push). */
+export function serializeGameState(gameState: GameState, heroRegistry: HeroRegistry): SaveGameData {
+  const collectedGemsSerialized = gameState.collectedGems instanceof InventoryEntity
+    ? gameState.collectedGems.toJSON()
+    : gameState.collectedGems
 
     const heroesSerialized: Record<string, SerializedHero> = {}
     charTemplates.forEach(name => {
@@ -111,7 +112,12 @@ export async function saveGame(gameState: GameState, heroRegistry: HeroRegistry)
       }))
     }
 
-    return await SaveService.saveGame(gameData)
+  return gameData
+}
+
+export async function saveGame(gameState: GameState, heroRegistry: HeroRegistry): Promise<boolean> {
+  try {
+    return await SaveService.saveGame(serializeGameState(gameState, heroRegistry))
   } catch (e) {
     console.warn('[saveSystem] Save failed', e)
     return false

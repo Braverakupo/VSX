@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { gameState, formatNotation, lvlPlusOneAll } from '../composables/useGameState'
 import { heroThemes, CHAR_GEM_COLOR } from '../config/gameData'
 import { applyTheme } from '../composables/cssScripts'
+import { useAuth } from '../composables/useAuth'
 import GemRotary from './GemRotary.vue'
 
 type GemColorKey = 'reds' | 'blues' | 'oranges' | 'cyans' | 'purples' | 'blacks'
@@ -10,7 +11,7 @@ type GemColorKey = 'reds' | 'blues' | 'oranges' | 'cyans' | 'purples' | 'blacks'
 /**
  * Top Navigation sections available inside the game.
  */
-export type NavSection = 'characters' | 'play'
+export type NavSection = 'characters' | 'play' | 'bag'
 
 const props = defineProps<{
   /** Active section (inside the game). */
@@ -23,10 +24,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'navigate', target: NavSection): void
   (e: 'openSettings'): void
+  (e: 'openLogin'): void
 }>()
 
 // ── Top navigation bar ──
-const NAV_ITEMS: NavSection[] = ['characters', 'play']
+const NAV_ITEMS: NavSection[] = ['characters', 'play', 'bag']
 const navItems = computed<NavSection[]>(() => NAV_ITEMS)
 const activeItem = computed<NavSection>(() => (props.section ?? 'play'))
 
@@ -71,6 +73,9 @@ watch(selectedGemColor, (newColor) => {
 })
 
 // Current character theme for the title gradient
+const auth = useAuth()
+const loginLabel = computed(() => auth.user.value?.username ?? 'Login')
+
 const titleTheme = computed(() => {
   const charName = colorToChar[selectedGemColor.value]
   return heroThemes[charName] || heroThemes.Voltkin
@@ -86,7 +91,10 @@ watch(effectiveTheme, () => {
 })
 
 // Reactive values for header display
-const totalCharGold = ref(0)
+const totalCharGold = computed(() => {
+  const gold = gameState.gold || 0
+  return gold < 1000 ? Math.floor(gold) : gold
+})
 const goldRateDisplay = ref('+0/s')
 let updateInterval: ReturnType<typeof setInterval> | null = null
 
@@ -95,8 +103,6 @@ function updateHeaderStats() {
   gameState.objectives.forEach(obj => {
     totalGoldRate += obj.completed * obj.grade
   })
-  const gold = gameState.gold || 0
-  totalCharGold.value = gold < 1000 ? Math.floor(gold) : gold
   const rate = totalGoldRate
   let formattedRate: string
   if (rate < 1000) {
@@ -124,6 +130,8 @@ onUnmounted(() => {
   if (updateInterval) clearInterval(updateInterval)
 })
 
+
+
 function onTitleClick() {
   gemRotaryRef.value?.nextGem()
 }
@@ -134,7 +142,9 @@ function onTitleClick() {
     <div class="header-top">
       <div class="header-left">
         <div class="title" :style="{ color: titleTheme.color }" @click="onTitleClick">VANTAGE STRIKE</div>
+        
         <GemRotary ref="gemRotaryRef" @char-change="selectedGemColor = $event" @close-dropdowns="onCloseDropdowns" />
+        <button class="z-btn z-btn--mini" @click="emit('openLogin')">{{ loginLabel }}</button>
       </div>
       <div class="header-right">
         <div class="header-stat gold-stat">

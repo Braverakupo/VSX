@@ -27,6 +27,7 @@ import * as rebirthSystem from '../systems/rebirthSystem'
 import * as completionSystem from '../systems/completionSystem'
 import * as saveSystem from '../systems/saveSystem'
 import * as SaveService from '../services/SaveService'
+import { pushRemoteSave } from './useAuth'
 import { useGameLoop } from './useGameLoop'
 import { triggerCinematicMP4, isCinematicActive, clearAllCinematics, clearCinematic } from './useVantageSystem'
 import { updateVideoForObjective } from './useVideoPool'
@@ -72,6 +73,12 @@ function saveGameWithCooldown(): Promise<boolean> {
   return saveSystem.saveGame(gameState, heroRegistry)
 }
 
+
+/** Force header stats display to refresh. */
+export function forceHeaderStatsUpdate() {
+  // This forces Vue to recompute any computed values that depend on gameState
+  void gameState.gold
+}
 function updateSaveLabel(): void {
   if (!lastSaveTime.value) {
     lastSaveLabel.value = ''
@@ -323,6 +330,8 @@ export function lvlPlusOneAll(): void {
 
 // ─── Gem management (delegates to gemSystem) ───
 export function clearSaveData(): void {
+  gameState.gold = 0
+  gameState.totalGoldEarned = 0
   gameState.collectedGems = new InventoryEntity({})
   charTemplates.forEach(name => {
     const hero = heroRegistry[name]
@@ -378,6 +387,18 @@ export function moveGem(fromHero: string, fromSlot: number, toHero: string, toSl
 
 export function equipGem(heroName: string, slotIndex: number, gemId: string): boolean {
   return gemSystem.equipGem(heroName, slotIndex, gemId, heroRegistry)
+}
+
+export function equipGemFromBag(heroName: string, slotIndex: number, gemId: string): boolean {
+  return gemSystem.equipGemFromBag(heroName, slotIndex, gemId, heroRegistry, gameState.collectedGems)
+}
+
+export function moveEquippedGem(fromHero: string, fromSlot: number, toHero: string, toSlot: number): boolean {
+  return gemSystem.moveEquippedGem(fromHero, fromSlot, toHero, toSlot, heroRegistry)
+}
+
+export function unequipGemToBag(heroName: string, slotIndex: number): boolean {
+  return gemSystem.unequipGemToBag(heroName, slotIndex, heroRegistry, gameState.collectedGems)
 }
 
 export function unequipGem(heroName: string, slotIndex: number): void {
@@ -440,6 +461,31 @@ export function getHeroMaxVantage(hero: Hero): number {
 
 export function getGemDPS(gem: GemEntity): number {
   return combatSystem.getGemDPS(gem)
+}
+
+// ─── Save rollup ───
+// Account sync: 60s autosave interval + explicit saveNow() (the Login overlay's
+// Save button). Local save always; server push only when signed in.
+let autosaveInterval: ReturnType<typeof setInterval> | null = null
+
+/** Save locally AND push to the account server when signed in. */
+export async function saveNow(): Promise<boolean> {
+  if (!isLoaded.value) return false
+  const gameData = saveSystem.serializeGameState(gameState, heroRegistry)
+  const ok = await SaveService.saveGame(gameData)
+  if (ok) {
+    lastSaveTime.value = Date.now()
+    updateSaveLabel()
+  }
+  await pushRemoteSave(gameData)  // no-op when signed out
+  return ok
+}
+
+function stopAutosave(): void {
+  if (autosaveInterval !== null) {
+    clearInterval(autosaveInterval)
+    autosaveInterval = null
+  }
 }
 
 // ─── Init ───
@@ -554,9 +600,14 @@ export async function initGame(): Promise<void> {
   // Resize listener
   window.addEventListener('resize', () => { viewportWidth.value = window.innerWidth })
 
+  // Save every 60 seconds (local + account sync when signed in).
+  // Guard against duplicate intervals on HMR re-mounts / re-init.
+  stopAutosave()
+  autosaveInterval = setInterval(() => { void saveNow() }, 60_000)
+
   // Save on page unload — named function so settings can remove it during reset
   const beforeUnloadHandler = () => {
-    saveSystem.saveGame(gameState, heroRegistry)
+    void saveNow()
   }
   ;(window as unknown as { _vantageBeforeUnload?: () => void })._vantageBeforeUnload = beforeUnloadHandler
   window.addEventListener('beforeunload', beforeUnloadHandler)
@@ -566,6 +617,7 @@ export function cleanupGame(): void {
   const { stopGameLoop } = useGameLoop()
   stopGameLoop()
   clearAllCinematics()
+  stopAutosave()
 }
 
 // ─── Re-export everything for backward compatibility ───

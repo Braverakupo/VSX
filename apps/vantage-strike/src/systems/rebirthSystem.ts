@@ -6,6 +6,7 @@ import { GemEntity } from '../entities/GemEntity'
 import { ObjectiveEntity } from '../entities/ObjectiveEntity'
 import { computeGemForceGain } from './combatSystem'
 import { rollAbilityForColor, rollModifiers } from './gemSystem'
+import type { GameState } from '../types'
 import type { Hero } from './combatSystem'
 
 /** The objective fields rebirth logic reads (structural — accepts ObjectiveEntity or UI-facing shapes). */
@@ -37,7 +38,7 @@ export interface RebirthResult {
 export function processRebirth(
   objective: RebirthObjective | null | undefined,
   hero: Hero | null | undefined,
-  gameState: { rebirthStones: number }
+  gameState: GameState
 ): RebirthResult | null {
   if (!objective || !hero) return null
   if (!canRebirth(objective, hero)) return null
@@ -63,14 +64,14 @@ export function processRebirth(
       dmg: scaledDmg,
       modifiers: rollModifiers({ tier: rolledTier })
     })
-    hero.inventory.addGem(gemAwarded)
-
+    // Auto-equip to this character while slots remain; excess goes to the Bag.
     const filledSlots = hero.gemSlots.filter((s): s is string => s !== null).length
     if (filledSlots < GEMS_PER_COLOR) {
+      hero.inventory.addGem(gemAwarded)
       const emptyIdx = hero.gemSlots.indexOf(null)
-      if (emptyIdx !== -1) {
-        hero.gemSlots[emptyIdx] = gemAwarded.id
-      }
+      if (emptyIdx !== -1) hero.gemSlots[emptyIdx] = gemAwarded.id
+    } else {
+      gameState.collectedGems.addGem(gemAwarded)  // global Bag
     }
   }
 

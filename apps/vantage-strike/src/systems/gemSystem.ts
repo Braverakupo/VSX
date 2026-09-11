@@ -63,10 +63,6 @@ export function rollModifiers(gem: { tier: number }): GemModifier[] {
     rolled.push({ type: 'vantageCapBoost', value })
   }
 
-  // ── 5. Legendary 7th slot: statPerCompletion / Mystic Aura (5% chance) ──
-  if (Math.random() < 0.05) {
-    rolled.push({ type: 'statPerCompletion', value: 0.10 })
-  }
 
   return rolled
 }
@@ -249,12 +245,118 @@ export function equipGem(heroName: string, slotIndex: number, gemId: string, her
 }
 
 /**
+ * Equip a gem from the global Bag (collectedGems) into a hero slot.
+ * If the slot already holds a gem, the occupant returns to the Bag.
+ */
+export function equipGemFromBag(
+  heroName: string,
+  slotIndex: number,
+  gemId: string,
+  heroRegistry: HeroRegistry,
+  collectedGems: GemInventory
+): boolean {
+  const hero = heroRegistry[heroName]
+  if (!hero) return false
+  if (slotIndex < 0 || slotIndex >= hero.gemSlots.length) return false
+  const gem = collectedGems.getGem(gemId)
+  if (!gem) return false
+
+  const occupantId = hero.gemSlots[slotIndex]
+  if (occupantId) {
+    const occupant = hero.inventory.getGem(occupantId)
+    if (occupant) {
+      hero.inventory.removeGem(occupantId)
+      collectedGems.addGem(occupant)
+    }
+    hero.gemSlots[slotIndex] = null
+  }
+
+  hero.inventory.addGem(gem)
+  hero.gemSlots[slotIndex] = gemId
+  collectedGems.removeGem(gemId)
+  return true
+}
+
+/**
  * Unequip a gem from a hero's slot.
  */
 export function unequipGem(heroName: string, slotIndex: number, heroRegistry: HeroRegistry): void {
   const hero = heroRegistry[heroName]
   if (!hero) return
   hero.gemSlots[slotIndex] = null
+}
+
+/**
+ * Unequip a gem from a hero slot and return it to the global Bag.
+ * The gem is removed from the hero's personal inventory and re-added to
+ * collectedGems so it can only exist in one place at a time.
+ */
+export function unequipGemToBag(
+  heroName: string,
+  slotIndex: number,
+  heroRegistry: HeroRegistry,
+  collectedGems: GemInventory
+): boolean {
+  const hero = heroRegistry[heroName]
+  if (!hero) return false
+  if (slotIndex < 0 || slotIndex >= hero.gemSlots.length) return false
+  const gemId = hero.gemSlots[slotIndex]
+  if (!gemId) return false
+
+  const gem = hero.inventory.getGem(gemId)
+  if (gem) {
+    hero.inventory.removeGem(gemId)
+    collectedGems.addGem(gem)
+  }
+  hero.gemSlots[slotIndex] = null
+  return true
+}
+
+/**
+ * Move an equipped gem between slots (same or different hero).
+ * If the target slot holds a gem, they swap; the inventories stay consistent
+ * (gems always live in exactly one hero's inventory or the Bag).
+ */
+export function moveEquippedGem(
+  fromHero: string,
+  fromSlot: number,
+  toHero: string,
+  toSlot: number,
+  heroRegistry: HeroRegistry
+): boolean {
+  const from = heroRegistry[fromHero]
+  const to = heroRegistry[toHero]
+  if (!from || !to) return false
+  if (fromSlot < 0 || fromSlot >= from.gemSlots.length) return false
+  if (toSlot < 0 || toSlot >= to.gemSlots.length) return false
+  const gemId = from.gemSlots[fromSlot]
+  if (!gemId) return false
+
+  const occupantId = to.gemSlots[toSlot]
+
+  if (fromHero === toHero) {
+    // Same inventory — just swap ids (occupant may be null).
+    from.gemSlots[fromSlot] = occupantId
+    to.gemSlots[toSlot] = gemId
+    return true
+  }
+
+  // Cross-hero: move the selected gem into the target hero's inventory,
+  // and (if any) the occupant back into the source hero's inventory.
+  const gem = from.inventory.getGem(gemId)
+  if (!gem) return false
+  from.inventory.removeGem(gemId)
+  to.inventory.addGem(gem)
+  if (occupantId) {
+    const occupant = to.inventory.getGem(occupantId)
+    if (occupant) {
+      to.inventory.removeGem(occupantId)
+      from.inventory.addGem(occupant)
+    }
+  }
+  from.gemSlots[fromSlot] = occupantId
+  to.gemSlots[toSlot] = gemId
+  return true
 }
 
 /**

@@ -12,6 +12,10 @@ export default defineConfig({
   },
   server: {
     allowedHosts: true,
+    // Dev proxy: /api/* → server/auth.ts (accounts, sessions)
+    proxy: {
+      '/api': 'http://127.0.0.1:4187'
+    },
     watch: {
       // better-sqlite3 holds exclusive file locks on Windows — ignore DB files
       // to prevent EBUSY / SQLITE_BUSY conflicts.

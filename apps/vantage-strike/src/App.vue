@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { gameState, formatNotation, initGame, cleanupGame } from './composables/useGameState'
+import { gameState, formatNotation, initGame, cleanupGame, forceHeaderStatsUpdate, saveNow } from './composables/useGameState'
 import { initVideoSystem, cleanupVideoSystem, updateVideoForObjective, reduceDmgNumbers } from './composables/useVideoPool'
 import { applyTheme } from './composables/cssScripts'
 import GameHeader from './components/GameHeader.vue'
 import type { NavSection } from './components/GameHeader.vue'
 import GameCard from './components/GameCard.vue'
+import BagView from './components/BagView.vue'
 import GemTooltip from './components/GemTooltip.vue'
 import TutorialOverlay from './components/TutorialOverlay.vue'
 import SettingsOverlay from './components/SettingsOverlay.vue'
+import LoginOverlay from './components/LoginOverlay.vue'
+import { restoreSession, fetchRemoteSave } from './composables/useAuth'
+import { lastSaveTime } from './composables/useGameState'
+import * as SaveService from './services/SaveService'
 import CharacterSelect from './components/CharacterSelect.vue'
 
 interface TapPopupPayload {
@@ -25,6 +30,7 @@ interface TapPopup extends TapPopupPayload {
 // ── Overlay visibility ──
 const showTutorial = ref(false)
 const showSettings = ref(false)
+const showLogin = ref(false)
 
 // ── Navigation ──
 // Two sections: the character select (which hosts all lore below it) and
@@ -34,6 +40,44 @@ const charSelectHero = ref('Ashbeam')
 
 function onNavigate(target: NavSection) {
   section.value = target
+}
+
+// ── Account sync ──
+// New accounts start with a CLEAN slate: drop the guest local save and
+// re-init a fresh gamestate (never inherit guest progress on a new account).
+async function onAccountRegistered() {
+  await SaveService.deleteSave()
+  lastSaveTime.value = null
+  await initGame()
+}
+
+// Returning accounts: restore the server save (if any) over the local cache.
+async function onAccountSignedIn() {
+  const remote = await fetchRemoteSave()
+  if (remote) {
+    await SaveService.saveGame(remote)
+    lastSaveTime.value = null
+    await initGame()
+  }
+}
+
+async function onSignedOut() {
+  // Save current progress first
+  await saveNow()
+  
+  // Clear local storage first
+  await SaveService.deleteSave()
+  lastSaveTime.value = null
+  
+  // Re-init game fresh (this will create fresh objectives)
+  await initGame()
+  
+  // Reset gold explicitly
+  gameState.gold = 0
+  gameState.totalGoldEarned = 0
+  
+  // Force header to update
+  forceHeaderStatsUpdate()
 }
 
 // ── Damage popups ──
@@ -71,7 +115,8 @@ watch(activeHero, (name) => {
 
 onMounted(async () => {
   document.addEventListener('contextmenu', e => e.preventDefault())
-  await initGame()
+  await restoreSession()
+    await initGame()
   initVideoSystem()
   applyTheme(gameViewRef.value, activeHero.value)
 
@@ -95,11 +140,15 @@ onUnmounted(() => {
       :theme-override="section === 'characters' ? charSelectHero : null"
       @navigate="onNavigate"
       @open-settings="showSettings = true"
+      @open-login="showLogin = true"
     />
 
     <div class="content-row">
       <!-- Characters — character select screen with all lore below it -->
       <CharacterSelect v-if="section === 'characters'" @select="charSelectHero = $event" />
+
+      <!-- Bag — global gem inventory (rebirthed gems land here) -->
+      <BagView v-else-if="section === 'bag'" />
 
       <!-- Play — the active game screen -->
       <template v-else>
@@ -129,6 +178,7 @@ onUnmounted(() => {
     </Teleport>
 
     <SettingsOverlay v-if="showSettings" @close="showSettings = false" @open-tutorial="showTutorial = true" />
+    <LoginOverlay v-if="showLogin" @close="showLogin = false" @registered="onAccountRegistered" @signed-in="onAccountSignedIn" @signed-out="onSignedOut" />
     <TutorialOverlay :visible="showTutorial" @close="showTutorial = false" />
     <GemTooltip />
   </div>

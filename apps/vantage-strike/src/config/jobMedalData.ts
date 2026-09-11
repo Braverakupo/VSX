@@ -81,8 +81,6 @@ export function getLevelTarget(level: number): number {
  *  - id:           unique identifier
  *  - name:         display name
  *  - stats:        single stat key tracked for leveling
- *  - forceBase:    base force per second at level 0
- *  - forcePerStat: force per stat point
  *  - desc:         flavor text
  */
 export interface JobMedalDef {
@@ -90,10 +88,6 @@ export interface JobMedalDef {
   name: string
   /** Single stat key tracked for leveling (all medals are single-stat now). */
   stats: StatName[]
-  /** Base force per second at level 0. */
-  forceBase: number
-  /** Force per stat point. */
-  forcePerStat: number
   desc: string
 }
 
@@ -103,16 +97,16 @@ export const JOB_MEDAL_DEFS: Record<string, JobMedalDef[]> = {
   // 0:Str, 1:Spi, 2:Int, 3:Con, 4:Dex, 5:Str, 6:Int, 7:Con, 8:Dex, 9:Spi
   // ═══════════════════════════════════════════════
   Voltkin: [
-    { id: 'voltkin_vanguard',    name: 'Vanguard',    stats: ['Str'],       forceBase: 4, forcePerStat: 0.02, desc: 'Spearhead of the assault — raw strength fuels force.' },
-    { id: 'voltkin_berserker',   name: 'Berserker',   stats: ['Str'],       forceBase: 3, forcePerStat: 0.03, desc: 'Unbridled strength channels devastating force.' },
-    { id: 'voltkin_blademaster', name: 'Blademaster', stats: ['Dex'],       forceBase: 5, forcePerStat: 0.015, desc: 'Dexterous strikes sharpen the flow of force.' },
-    { id: 'voltkin_fury',        name: 'Fury',        stats: ['Dex'],       forceBase: 6, forcePerStat: 0.01, desc: 'Furious dexterity generates relentless force.' },
-    { id: 'voltkin_ravager',     name: 'Ravager',     stats: ['Spi'],       forceBase: 4, forcePerStat: 0.025, desc: 'Ravager spirit amplifies force output.' },
-    { id: 'voltkin_tempest',     name: 'Tempest',     stats: ['Spi'],       forceBase: 1500, forcePerStat: 80, desc: 'Storm of spirit — tempest force.' },
-    { id: 'voltkin_inferno',     name: 'Inferno',     stats: ['Int'],       forceBase: 5, forcePerStat: 0.02, desc: 'Burning intellect generates infernal force.' },
-    { id: 'voltkin_warlord',     name: 'Warlord',     stats: ['Int'],       forceBase: 6, forcePerStat: 0.018, desc: 'Warlord intellect forges warlord-tier force.' },
-    { id: 'voltkin_onslaught',   name: 'Onslaught',   stats: ['Con'],       forceBase: 7, forcePerStat: 0.015, desc: 'Onslaught constitution powers the onslaught.' },
-    { id: 'voltkin_overlord',    name: 'Overlord',    stats: ['Con'],       forceBase: 8, forcePerStat: 0.15, desc: 'Overlord constitution commands overwhelming force.' }
+    { id: 'voltkin_vanguard',    name: 'Vanguard',    stats: ['Str'],       desc: 'Spearhead of the assault — raw strength fuels force.' },
+    { id: 'voltkin_berserker',   name: 'Berserker',   stats: ['Str'],       desc: 'Unbridled strength channels devastating force.' },
+    { id: 'voltkin_blademaster', name: 'Blademaster', stats: ['Dex'],       desc: 'Dexterous strikes sharpen the flow of force.' },
+    { id: 'voltkin_fury',        name: 'Fury',        stats: ['Dex'],       desc: 'Furious dexterity generates relentless force.' },
+    { id: 'voltkin_ravager',     name: 'Ravager',     stats: ['Spi'],       desc: 'Ravager spirit amplifies force output.' },
+    { id: 'voltkin_tempest',     name: 'Tempest',     stats: ['Spi'],       desc: 'Storm of spirit — tempest force.' },
+    { id: 'voltkin_inferno',     name: 'Inferno',     stats: ['Int'],       desc: 'Burning intellect generates infernal force.' },
+    { id: 'voltkin_warlord',     name: 'Warlord',     stats: ['Int'],       desc: 'Warlord intellect forges warlord-tier force.' },
+    { id: 'voltkin_onslaught',   name: 'Onslaught',   stats: ['Con'],       desc: 'Onslaught constitution powers the onslaught.' },
+    { id: 'voltkin_overlord',    name: 'Overlord',    stats: ['Con'],       desc: 'Overlord constitution commands overwhelming force.' }
   ],
 
   // ═══════════════════════════════════════════════
@@ -120,16 +114,16 @@ export const JOB_MEDAL_DEFS: Record<string, JobMedalDef[]> = {
   // 0:Str, 1:Spi, 2:Int, 3:Con, 4:Dex, 5:Str, 6:Int, 7:Con, 8:Dex, 9:Spi
   // ═══════════════════════════════════════════════
   Ashbeam: [
-    { id: 'ashbeam_tactician',    name: 'Tactician',    stats: ['Str'],       forceBase: 4, forcePerStat: 0.02, desc: 'Calculated strength fuels precise force.' },
-    { id: 'ashbeam_ranger',       name: 'Ranger',       stats: ['Str'],       forceBase: 5, forcePerStat: 0.015, desc: 'Ranger strength channels consistent force.' },
-    { id: 'ashbeam_gunslinger',   name: 'Gunslinger',   stats: ['Dex'],       forceBase: 3, forcePerStat: 0.03, desc: 'Gunslinger dexterity generates rapid force.' },
-    { id: 'ashbeam_spotter',      name: 'Spotter',      stats: ['Dex'],       forceBase: 6, forcePerStat: 0.01, desc: 'Spotter dexterity builds steady force.' },
-    { id: 'ashbeam_sharpshooter', name: 'Sharpshooter', stats: ['Spi'],       forceBase: 1200, forcePerStat: 90, desc: 'Sharpshooter spirit yields concentrated force.' },
-    { id: 'ashbeam_strategist',   name: 'Strategist',   stats: ['Spi'],       forceBase: 5,  forcePerStat: 0.18, desc: 'Strategist spirit aligns for maximum force.' },
-    { id: 'ashbeam_patrol',       name: 'Patrol',       stats: ['Int'],       forceBase: 6,  forcePerStat: 0.16, desc: 'Patrol intellect builds layered force.' },
-    { id: 'ashbeam_falcon',       name: 'Falcon',       stats: ['Int'],       forceBase: 7,  forcePerStat: 0.14, desc: 'Falcon intellect soars with falcon force.' },
-    { id: 'ashbeam_scope',        name: 'Scope',        stats: ['Con'],       forceBase: 8,  forcePerStat: 0.13, desc: 'Scope constitution combines for scoped force.' },
-    { id: 'ashbeam_ace',          name: 'Ace',          stats: ['Con'],       forceBase: 8, forcePerStat: 0.15, desc: 'Ace constitution deals precise force.' }
+    { id: 'ashbeam_tactician',    name: 'Tactician',    stats: ['Str'],       desc: 'Calculated strength fuels precise force.' },
+    { id: 'ashbeam_ranger',       name: 'Ranger',       stats: ['Str'],       desc: 'Ranger strength channels consistent force.' },
+    { id: 'ashbeam_gunslinger',   name: 'Gunslinger',   stats: ['Dex'],       desc: 'Gunslinger dexterity generates rapid force.' },
+    { id: 'ashbeam_spotter',      name: 'Spotter',      stats: ['Dex'],       desc: 'Spotter dexterity builds steady force.' },
+    { id: 'ashbeam_sharpshooter', name: 'Sharpshooter', stats: ['Spi'],       desc: 'Sharpshooter spirit yields concentrated force.' },
+    { id: 'ashbeam_strategist',   name: 'Strategist',   stats: ['Spi'],       desc: 'Strategist spirit aligns for maximum force.' },
+    { id: 'ashbeam_patrol',       name: 'Patrol',       stats: ['Int'],       desc: 'Patrol intellect builds layered force.' },
+    { id: 'ashbeam_falcon',       name: 'Falcon',       stats: ['Int'],       desc: 'Falcon intellect soars with falcon force.' },
+    { id: 'ashbeam_scope',        name: 'Scope',        stats: ['Con'],       desc: 'Scope constitution combines for scoped force.' },
+    { id: 'ashbeam_ace',          name: 'Ace',          stats: ['Con'],       desc: 'Ace constitution deals precise force.' }
   ],
 
   // ═══════════════════════════════════════════════
@@ -137,16 +131,16 @@ export const JOB_MEDAL_DEFS: Record<string, JobMedalDef[]> = {
   // 0:Str, 1:Str, 2:Dex, 3:Dex, 4:Spi, 5:Spi, 6:Int, 7:Int, 8:Con, 9:Con
   // ═══════════════════════════════════════════════
   Crypsis: [
-    { id: 'crypsis_rogue',       name: 'Rogue',       stats: ['Str'],       forceBase: 5, forcePerStat: 0.015, desc: 'Shadowy strength breeds rogue force.' },
-    { id: 'crypsis_assassin',    name: 'Assassin',    stats: ['Str'],       forceBase: 3,  forcePerStat: 0.28, desc: 'Assassin strength channels lethal force.' },
-    { id: 'crypsis_trickster',   name: 'Trickster',   stats: ['Dex'],       forceBase: 3, forcePerStat: 0.03, desc: 'Trickster dexterity weaves deceptive force.' },
-    { id: 'crypsis_scout',       name: 'Scout',       stats: ['Dex'],       forceBase: 5,  forcePerStat: 0.18, desc: 'Scout dexterity builds steady shadow force.' },
-    { id: 'crypsis_bandit',      name: 'Bandit',      stats: ['Spi'],       forceBase: 4,  forcePerStat: 0.22, desc: 'Bandit spirit pilfers extra force.' },
-    { id: 'crypsis_shadowblade', name: 'Shadowblade', stats: ['Spi'],       forceBase: 5, forcePerStat: 0.02, desc: 'Shadowblade spirit forges dark force.' },
-    { id: 'crypsis_poacher',     name: 'Poacher',     stats: ['Int'],       forceBase: 7,  forcePerStat: 0.16, desc: 'Poacher intellect hunts with force.' },
-    { id: 'crypsis_marauder',    name: 'Marauder',    stats: ['Int'],       forceBase: 7, forcePerStat: 0.015, desc: 'Marauder intellect crushes with force.' },
-    { id: 'crypsis_corsair',     name: 'Corsair',     stats: ['Con'],       forceBase: 9,  forcePerStat: 0.13, desc: 'Corsair constitution commands shadow force.' },
-    { id: 'crypsis_shadow_king', name: 'Shadow King', stats: ['Con'],       forceBase: 9, forcePerStat: 0.13, desc: 'Shadow King constitution commands every shadow attribute.' }
+    { id: 'crypsis_rogue',       name: 'Rogue',       stats: ['Str'],       desc: 'Shadowy strength breeds rogue force.' },
+    { id: 'crypsis_assassin',    name: 'Assassin',    stats: ['Str'],       desc: 'Assassin strength channels lethal force.' },
+    { id: 'crypsis_trickster',   name: 'Trickster',   stats: ['Dex'],       desc: 'Trickster dexterity weaves deceptive force.' },
+    { id: 'crypsis_scout',       name: 'Scout',       stats: ['Dex'],       desc: 'Scout dexterity builds steady shadow force.' },
+    { id: 'crypsis_bandit',      name: 'Bandit',      stats: ['Spi'],       desc: 'Bandit spirit pilfers extra force.' },
+    { id: 'crypsis_shadowblade', name: 'Shadowblade', stats: ['Spi'],       desc: 'Shadowblade spirit forges dark force.' },
+    { id: 'crypsis_poacher',     name: 'Poacher',     stats: ['Int'],       desc: 'Poacher intellect hunts with force.' },
+    { id: 'crypsis_marauder',    name: 'Marauder',    stats: ['Int'],       desc: 'Marauder intellect crushes with force.' },
+    { id: 'crypsis_corsair',     name: 'Corsair',     stats: ['Con'],       desc: 'Corsair constitution commands shadow force.' },
+    { id: 'crypsis_shadow_king', name: 'Shadow King', stats: ['Con'],       desc: 'Shadow King constitution commands every shadow attribute.' }
   ],
 
   // ═══════════════════════════════════════════════
@@ -154,16 +148,16 @@ export const JOB_MEDAL_DEFS: Record<string, JobMedalDef[]> = {
   // 0:Str, 1:Str, 2:Dex, 3:Dex, 4:Spi, 5:Spi, 6:Int, 7:Int, 8:Con, 9:Con
   // ═══════════════════════════════════════════════
   Spectra: [
-    { id: 'spectra_mystic',     name: 'Mystic',     stats: ['Str'],       forceBase: 3,  forcePerStat: 0.24, desc: 'Arcane strength empowers mystic force.' },
-    { id: 'spectra_arcanist',   name: 'Arcanist',   stats: ['Str'],       forceBase: 5, forcePerStat: 0.015, desc: 'Arcanist strength weaves potent force.' },
-    { id: 'spectra_enchanter',  name: 'Enchanter',  stats: ['Dex'],       forceBase: 5,  forcePerStat: 0.18, desc: 'Enchanter dexterity amplifies arcane force.' },
-    { id: 'spectra_sage',       name: 'Sage',       stats: ['Dex'],       forceBase: 3, forcePerStat: 0.03, desc: 'Sage dexterity sustains deep force.' },
-    { id: 'spectra_oracle',     name: 'Oracle',     stats: ['Spi'],       forceBase: 4,  forcePerStat: 0.22, desc: 'Oracle spirit predicts and channels force.' },
-    { id: 'spectra_aegis',      name: 'Aegis',      stats: ['Spi'],       forceBase: 5, forcePerStat: 0.02, desc: 'Aegis spirit shields and channels arcane force.' },
-    { id: 'spectra_seer',       name: 'Seer',       stats: ['Int'],       forceBase: 7,  forcePerStat: 0.16, desc: 'Seer intellect peers into force streams.' },
-    { id: 'spectra_weaver',     name: 'Weaver',     stats: ['Int'],       forceBase: 7, forcePerStat: 0.015, desc: 'Weaver intellect threads together force.' },
-    { id: 'spectra_luminary',   name: 'Luminary',   stats: ['Con'],       forceBase: 9,  forcePerStat: 0.13, desc: 'Luminary constitution radiates supreme force.' },
-    { id: 'spectra_archon',     name: 'Archon',     stats: ['Con'],       forceBase: 9, forcePerStat: 0.13, desc: 'Archon constitution radiates arcane force.' }
+    { id: 'spectra_mystic',     name: 'Mystic',     stats: ['Str'],       desc: 'Arcane strength empowers mystic force.' },
+    { id: 'spectra_arcanist',   name: 'Arcanist',   stats: ['Str'],       desc: 'Arcanist strength weaves potent force.' },
+    { id: 'spectra_enchanter',  name: 'Enchanter',  stats: ['Dex'],       desc: 'Enchanter dexterity amplifies arcane force.' },
+    { id: 'spectra_sage',       name: 'Sage',       stats: ['Dex'],       desc: 'Sage dexterity sustains deep force.' },
+    { id: 'spectra_oracle',     name: 'Oracle',     stats: ['Spi'],       desc: 'Oracle spirit predicts and channels force.' },
+    { id: 'spectra_aegis',      name: 'Aegis',      stats: ['Spi'],       desc: 'Aegis spirit shields and channels arcane force.' },
+    { id: 'spectra_seer',       name: 'Seer',       stats: ['Int'],       desc: 'Seer intellect peers into force streams.' },
+    { id: 'spectra_weaver',     name: 'Weaver',     stats: ['Int'],       desc: 'Weaver intellect threads together force.' },
+    { id: 'spectra_luminary',   name: 'Luminary',   stats: ['Con'],       desc: 'Luminary constitution radiates supreme force.' },
+    { id: 'spectra_archon',     name: 'Archon',     stats: ['Con'],       desc: 'Archon constitution radiates arcane force.' }
   ],
 
   // ═══════════════════════════════════════════════
@@ -171,16 +165,16 @@ export const JOB_MEDAL_DEFS: Record<string, JobMedalDef[]> = {
   // 0:Str, 1:Str, 2:Dex, 3:Dex, 4:Spi, 5:Spi, 6:Int, 7:Int, 8:Con, 9:Con
   // ═══════════════════════════════════════════════
   Hellshift: [
-    { id: 'hellshift_brawler',     name: 'Brawler',     stats: ['Str'],       forceBase: 5,  forcePerStat: 0.18, desc: 'Brawler strength throws heavy force.' },
-    { id: 'hellshift_juggernaut',  name: 'Juggernaut',  stats: ['Str'],       forceBase: 2,  forcePerStat: 0.38, desc: 'Juggernaut strength drives unstoppable force.' },
-    { id: 'hellshift_reaver',      name: 'Reaver',      stats: ['Dex'],       forceBase: 4,  forcePerStat: 0.22, desc: 'Reaver dexterity harvests dark force.' },
-    { id: 'hellshift_pugilist',    name: 'Pugilist',    stats: ['Dex'],       forceBase: 6,  forcePerStat: 0.15, desc: 'Pugilist dexterity fuels force with grit.' },
-    { id: 'hellshift_gladiator',   name: 'Gladiator',   stats: ['Spi'],       forceBase: 4, forcePerStat: 0.025, desc: 'Gladiator spirit strikes with swift force.' },
-    { id: 'hellshift_brute',       name: 'Brute',       stats: ['Spi'],       forceBase: 5, forcePerStat: 0.02, desc: 'Brute spirit crushes with force.' },
-    { id: 'hellshift_colossus',    name: 'Colossus',    stats: ['Int'],       forceBase: 7,  forcePerStat: 0.16, desc: 'Colossus intellect generates titan force.' },
-    { id: 'hellshift_ironclad',    name: 'Ironclad',    stats: ['Int'],       forceBase: 8,  forcePerStat: 0.15, desc: 'Ironclad intellect forges unbreakable force.' },
-    { id: 'hellshift_titan',       name: 'Titan',       stats: ['Con'],       forceBase: 10, forcePerStat: 0.12, desc: 'Titan constitution commands supreme force.' },
-    { id: 'hellshift_war_master',  name: 'War Master',  stats: ['Con'],       forceBase: 10, forcePerStat: 0.12, desc: 'War Master constitution forges titanic force.' }
+    { id: 'hellshift_brawler',     name: 'Brawler',     stats: ['Str'],       desc: 'Brawler strength throws heavy force.' },
+    { id: 'hellshift_juggernaut',  name: 'Juggernaut',  stats: ['Str'],       desc: 'Juggernaut strength drives unstoppable force.' },
+    { id: 'hellshift_reaver',      name: 'Reaver',      stats: ['Dex'],       desc: 'Reaver dexterity harvests dark force.' },
+    { id: 'hellshift_pugilist',    name: 'Pugilist',    stats: ['Dex'],       desc: 'Pugilist dexterity fuels force with grit.' },
+    { id: 'hellshift_gladiator',   name: 'Gladiator',   stats: ['Spi'],       desc: 'Gladiator spirit strikes with swift force.' },
+    { id: 'hellshift_brute',       name: 'Brute',       stats: ['Spi'],       desc: 'Brute spirit crushes with force.' },
+    { id: 'hellshift_colossus',    name: 'Colossus',    stats: ['Int'],       desc: 'Colossus intellect generates titan force.' },
+    { id: 'hellshift_ironclad',    name: 'Ironclad',    stats: ['Int'],       desc: 'Ironclad intellect forges unbreakable force.' },
+    { id: 'hellshift_titan',       name: 'Titan',       stats: ['Con'],       desc: 'Titan constitution commands supreme force.' },
+    { id: 'hellshift_war_master',  name: 'War Master',  stats: ['Con'],       desc: 'War Master constitution forges titanic force.' }
   ],
 
   // ═══════════════════════════════════════════════
@@ -188,16 +182,16 @@ export const JOB_MEDAL_DEFS: Record<string, JobMedalDef[]> = {
   // 0:Str, 1:Str, 2:Dex, 3:Dex, 4:Spi, 5:Spi, 6:Int, 7:Int, 8:Con, 9:Con
   // ═══════════════════════════════════════════════
   Kailin: [
-    { id: 'kailin_executor',    name: 'Executor',    stats: ['Str'],       forceBase: 4,  forcePerStat: 0.22, desc: 'Executor strength delivers void force.' },
-    { id: 'kailin_voidcaller',  name: 'Voidcaller',  stats: ['Str'],       forceBase: 4, forcePerStat: 0.025, desc: 'Voidcaller strength summons dark force.' },
-    { id: 'kailin_doombringer', name: 'Doombringer', stats: ['Dex'],       forceBase: 1500, forcePerStat: 80, desc: 'Doombringer dexterity spreads force destruction.' },
-    { id: 'kailin_judge',       name: 'Judge',       stats: ['Dex'],       forceBase: 3, forcePerStat: 0.03, desc: 'Judge dexterity endures with void force.' },
-    { id: 'kailin_harbinger',   name: 'Harbinger',   stats: ['Spi'],       forceBase: 4,  forcePerStat: 0.24, desc: 'Harbinger spirit heralds incoming force.' },
-    { id: 'kailin_reaper',      name: 'Reaper',      stats: ['Spi'],       forceBase: 5, forcePerStat: 0.02, desc: 'Reaper spirit harvests void force.' },
-    { id: 'kailin_inquisitor',  name: 'Inquisitor',  stats: ['Int'],       forceBase: 7,  forcePerStat: 0.16, desc: 'Inquisitor intellect extracts void force.' },
-    { id: 'kailin_fallen',      name: 'Fallen',      stats: ['Int'],       forceBase: 7, forcePerStat: 0.015, desc: 'Fallen intellect channels corrupted force.' },
-    { id: 'kailin_eclipse',     name: 'Eclipse',     stats: ['Con'],       forceBase: 9,  forcePerStat: 0.13, desc: 'Eclipse constitution blots out with force.' },
-    { id: 'kailin_death',       name: 'Death',       stats: ['Con'],       forceBase: 8, forcePerStat: 0.15, desc: 'Death constitution harvests void force.' }
+    { id: 'kailin_executor',    name: 'Executor',    stats: ['Str'],       desc: 'Executor strength delivers void force.' },
+    { id: 'kailin_voidcaller',  name: 'Voidcaller',  stats: ['Str'],       desc: 'Voidcaller strength summons dark force.' },
+    { id: 'kailin_doombringer', name: 'Doombringer', stats: ['Dex'],       desc: 'Doombringer dexterity spreads force destruction.' },
+    { id: 'kailin_judge',       name: 'Judge',       stats: ['Dex'],       desc: 'Judge dexterity endures with void force.' },
+    { id: 'kailin_harbinger',   name: 'Harbinger',   stats: ['Spi'],       desc: 'Harbinger spirit heralds incoming force.' },
+    { id: 'kailin_reaper',      name: 'Reaper',      stats: ['Spi'],       desc: 'Reaper spirit harvests void force.' },
+    { id: 'kailin_inquisitor',  name: 'Inquisitor',  stats: ['Int'],       desc: 'Inquisitor intellect extracts void force.' },
+    { id: 'kailin_fallen',      name: 'Fallen',      stats: ['Int'],       desc: 'Fallen intellect channels corrupted force.' },
+    { id: 'kailin_eclipse',     name: 'Eclipse',     stats: ['Con'],       desc: 'Eclipse constitution blots out with force.' },
+    { id: 'kailin_death',       name: 'Death',       stats: ['Con'],       desc: 'Death constitution harvests void force.' }
   ]
 }
 

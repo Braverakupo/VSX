@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { heroThemes, gemColorInfo, CHAR_GEM_COLOR, charTemplates } from '../config/gameData'
 import { applyTheme } from '../composables/cssScripts'
 import { CHAR_LORE, CODEX, WORLDS, FALL_OF_ARCADIA, WARGEAR, VEIL_KIN, SQUAD_MANDATE, ASHBEAM_CREED, HARDCORE_TENETS } from '../config/loreData'
+import { JOB_MEDAL_DEFS } from '../config/jobMedalData'
 import RosterProfile from './RosterProfile.vue'
 
 const props = defineProps<{
@@ -11,6 +12,8 @@ const props = defineProps<{
   /** Lore-only mode: hides the masthead/roster, renders as an in-flow block
       (used below the character select screen). Inherits the parent faction theme. */
   sectionsOnly?: boolean
+  /** Selected pilot — drives the dossier block shown just above The Codex. */
+  hero?: string
 }>()
 
 const emit = defineEmits<{
@@ -23,10 +26,18 @@ const activeHero = ref<string>('Voltkin')
 
 const heroList = charTemplates as readonly string[]
 
+const lore = computed(() => CHAR_LORE[activeHero.value])
+// Dossier medal grid: 3 rows × 3 columns of Job Medals + titles
+const medals = computed(() => (JOB_MEDAL_DEFS[activeHero.value] || []).slice(0, 9))
+
 const activeTheme = computed(() => heroThemes[activeHero.value] || heroThemes.Voltkin)
 
 watch(activeHero, (name) => {
   if (!props.sectionsOnly) applyTheme(pageRef.value, name)
+})
+
+watch(() => props.hero, (h) => {
+  if (h && h !== activeHero.value) activeHero.value = h
 })
 
 onMounted(async () => {
@@ -76,6 +87,31 @@ function scrollTo(id: string) {
             >
               {{ name }}
             </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Pilot Dossier — moved up from the character-select overlay ── -->
+      <section class="lv-dossier">
+        <div class="lv-section-head">
+          <span class="z-badge">DOSSIER</span>
+          <h2>{{ lore.realName }}</h2>
+          <p class="lv-section-sub">{{ activeHero }}</p>
+        </div>
+        <dl class="lv-dossier-facts">
+          <div class="lv-dossier-fact"><dt>Role</dt><dd>{{ lore.role }}</dd></div>
+          <div class="lv-dossier-fact"><dt>Mech</dt><dd>{{ lore.mech }}</dd></div>
+          <div class="lv-dossier-fact"><dt>Tenet</dt><dd>{{ lore.hardcoreTenet }}</dd></div>
+          <div class="lv-dossier-fact lv-dossier-fact--quote"><dt>Philosophy</dt><dd>"{{ lore.philosophy }}"</dd></div>
+        </dl>
+        <p class="lv-dossier-back">{{ lore.background }}</p>
+        <div class="lv-dossier-medals">
+          <div class="lv-dossier-medals-label">JOB MEDALS</div>
+          <div class="lv-dossier-medals-grid">
+            <div v-for="m in medals" :key="m.id" class="lv-dossier-medal" :title="m.desc">
+              <span class="lv-dossier-medal-name">{{ m.name }}</span>
+              <span class="lv-dossier-medal-stat">{{ m.stats[0] }}</span>
+            </div>
           </div>
         </div>
       </section>
@@ -330,6 +366,114 @@ function scrollTo(id: string) {
   font-size: 12px;
   color: var(--z-text-secondary);
   max-width: 560px;
+}
+
+/* ── Pilot Dossier (moved up from the select-screen overlay) ── */
+.lv-dossier {
+  width: 100%;
+  max-width: 860px;
+  background: var(--z-bg-card);
+  border: 1px solid var(--z-border-default);
+  border-radius: var(--z-radius);
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  text-align: center;
+}
+.lv-dossier-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin: 0;
+  width: 100%;
+  max-width: 660px;
+}
+.lv-dossier-fact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 8px;
+  background: rgba(255,255,255,.035);
+  border-radius: var(--z-radius-sm);
+  min-width: 0;
+}
+.lv-dossier-fact dt {
+  font-family: var(--z-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--z-text-muted);
+}
+.lv-dossier-fact dd {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--z-text-primary);
+}
+.lv-dossier-fact--quote dd { font-style: italic; color: var(--z-text-secondary); }
+.lv-dossier-back {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--z-text-secondary);
+  max-width: 640px;
+}
+.lv-dossier-medals {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid var(--z-border-muted);
+  padding-top: 12px;
+}
+.lv-dossier-medals-label {
+  font-family: var(--z-font-mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--z-text-muted);
+}
+.lv-dossier-medals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 6px;
+  width: 100%;
+  max-width: 640px;
+}
+.lv-dossier-medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px 7px;
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--z-radius-sm);
+  min-width: 0;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.lv-dossier-medal:hover {
+  border-color: var(--hero-color, var(--z-accent));
+  box-shadow: 0 0 10px var(--hero-glow, rgba(168,85,247,.3));
+}
+.lv-dossier-medal-name {
+  font-family: var(--z-font-mono);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.15;
+  color: var(--hero-bright, var(--z-text-primary));
+  text-shadow: 0 0 6px var(--hero-glow, rgba(168,85,247,.35));
+}
+.lv-dossier-medal-stat {
+  font-family: var(--z-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--z-text-secondary);
 }
 
 /* ── Codex cards ── */

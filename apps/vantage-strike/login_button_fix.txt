@@ -1,0 +1,7 @@
+        <ZButton
+          variant="primary"
+          :disabled="auth.isBusy.value || username.trim().length === 0 || password.length === 0"
+          @click="onSubmit"
+        >
+          {{ auth.isBusy.value ? 'Please wait…' : (mode === 'login' ? 'Sign In' : 'Create Account') }}
+        </ZButton>
