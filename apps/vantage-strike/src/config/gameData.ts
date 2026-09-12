@@ -325,7 +325,7 @@ export const GEM_MODIFIER_DEFS: Record<string, GemModifierDef> = {
  * handled separately and never appear in this pool.
  */
 export const STANDARD_BUFF_TYPES: string[] = [
-  'damageMult', 'preferredStatBonus', 'statPerCompletion',
+  'damageMult', 'preferredStatBonus',
   'vantageAutoRate', 'critDamage', 'doubleCrit', 'idleDamageMult'
 ]
 
