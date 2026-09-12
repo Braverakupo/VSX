@@ -66,6 +66,15 @@
 ### src\systems\combatSystem.ts
 **Overview:** // src/systems/combatSystem.ts // Pure combat logic — damage calculation, vantage, overcore, crits. // No Vue imports. Receives entity data, returns results.
 
+**Vantage Damage — `overcoreMult` vs `maxVantageMult`:**
+- `overcoreMult` (`getOvercoreDmgMult(hero)`): purely the over-99 exponential term — `overcap = max(0, vantageRating - 99)`, returns `Math.pow(1.12, overcap)`, or `1` when vantage ≤ 99. Scales on how far past the 99 cap a hero's vantage exceeds. Component of the next value, not independent.
+- `maxVantageMult` (in `calculateAutoStrikeDamage`): a ≥99 gate that packs the full per-character multiplier — `1` unless `vantageRating >= 99`, then `overcoreMult * (2 + (vantage99DmgMult ?? 0))`:
+  - `2` = base ×2 max-vantage damage (fixed once per hero)
+  - `vantage99DmgMult` = SUMMED across all that hero's gem instances (`getTotalGemBonuses` uses `+=`; baseline 0). Applied in both tap and auto damage as `overcoreMult * (2 + vantage99DmgMult)`.
+  - `overcoreMult` = the over-99 exponential scaling (above)
+  Applied to `baseStrikeDps = effectiveArmy * vantage * 0.05`.
+- Both are resolved per-character (vantage- and per-hero-gem-driven); gems via `combatSystem.getTotalGemBonuses(hero)`, and in the loop `medalSystem.getTotalHeroBonuses(hero, gemBonuses)` before `calculateAutoStrikeDamage`.
+
 ### src\systems\completionSystem.ts
 **Overview:** // src/systems/completionSystem.ts // Unified completion logic — called by both tap and auto-strike. // Pure logic: receives entities, mutates them, returns debug info.
 
@@ -84,6 +93,22 @@
 ### src\systems\xpSystem.ts
 **Overview:** // src/systems/xpSystem.ts // Pure XP/leveling logic. No Vue imports.
 
+
+---
+
+## Where Rebirth-Gem Passives Are Defined
+
+**Canonical definitions live in `src/config/gameData.ts`, two layers:**
+- `classDefinitions: ClassDefinition[]` (~line 114) — each gem class IS a passive set: `vantagePerTap`, `vantageAutoRate`, `armyPerSecond`, `critDamage`, `doubleCrit`, `critChance`, `vantage99DmgMult`, `vantageCritChance`, `preferredStatBonus`, `idleDamageMult`, `statPerCompletion`, `flatStats`, `scalingStat`, `weight`
+- `GEM_MODIFIER_DEFS` (~line 251) — rollable modifiers stacked on top: `damageMult`, `vantageCapBoost`, `statPerCompletion` (Mystic Aura), `preferredStatBonus`
+
+**Which passives a class gets (`which pool` / `which class`):**
+- `src/components/StatSlidePanel.vue:77` — `PASSIVES_10`, the 10-passive key pool distributed by `buildBalanced(rot)` (gem-side; medal mirror is `P10` in `medalSystem.ts`)
+- `src/systems/gemSystem.ts` `rollAbilityForColor()` — weighted-random class pick from `classDefinitions` on gem drop (incl. rebirth gems)
+
+**Resolution (what a gem ends up with):**
+- `src/systems/combatSystem.ts` `getTotalGemBonuses()` + `getModifierValue` — sums class passives (stat-scaled) + rolled modifiers
+- `src/components/GemTooltip.vue:229` `allPassives` — display merge (class passives + modifiers)
 
 ---
 ## Separation: Jobmedals vs Gems

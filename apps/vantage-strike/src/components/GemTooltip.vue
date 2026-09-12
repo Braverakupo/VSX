@@ -158,6 +158,9 @@ const passiveEntries = computed(() => {
       } else if (typeof val === 'number') {
         if (key === 'preferredStatBonus') {
           val = '+' + val.toFixed(2)
+        } else if (key === 'vantage99DmgMult') {
+          // Additive max-vantage damage → show as percentage (3.0 ⇒ +300%)
+          val = '+' + (val * 100).toFixed(0) + '%'
         } else if (val >= 1) {
           val = 'x' + val.toFixed(2)
         } else if (key === 'critChance' || key === 'vantageCritChance' || key === 'doubleCrit') {

@@ -155,7 +155,7 @@ export function getTotalGemBonuses(hero: Hero | null | undefined): GemBonuses {
     vantagePerTap: 0,
     vantageAutoRate: 0,
     vantageCapBoost: 0,
-    vantage99DmgMult: 2,
+    vantage99DmgMult: 0,
     critChance: 0,
     vantageCritChance: 0,
     critDamage: 0,
@@ -195,7 +195,7 @@ export function getTotalGemBonuses(hero: Hero | null | undefined): GemBonuses {
       totals.vantageCapBoost += capBoost
     }
     if (def.vantage99DmgMult !== undefined) {
-      totals.vantage99DmgMult = Math.max(totals.vantage99DmgMult, def.vantage99DmgMult + scale * 0.01)
+      totals.vantage99DmgMult += def.vantage99DmgMult + scale * 0.01
     }
     if (def.critChance !== undefined) {
       if (Array.isArray(def.critChance)) {
@@ -296,7 +296,7 @@ export function calculateTapDamage(hero: Hero, objective: { heroArmy?: number | 
 
   let dmg = effectiveArmy * vantage * 0.05
   if (hero.vantageRating >= 99) {
-    dmg *= (gemBonuses.vantage99DmgMult ?? 2) * overcoreMult
+    dmg *= overcoreMult * (2 + (gemBonuses.vantage99DmgMult ?? 0))
   }
   if (cheatActive) dmg *= 100
 
@@ -323,7 +323,7 @@ export function calculateAutoStrikeDamage(hero: Hero, objective: { heroArmy?: nu
   const vantage = getHeroVantage(hero)
   const effectiveArmy = objective.heroArmy || 1
   const overcoreMult = getOvercoreDmgMult(hero)
-  const maxVantageMult = hero.vantageRating >= 99 ? (gemBonuses.vantage99DmgMult ?? 2) * overcoreMult : 1
+  const maxVantageMult = hero.vantageRating >= 99 ? overcoreMult * (2 + (gemBonuses.vantage99DmgMult ?? 0)) : 1
 
   let baseStrikeDps = effectiveArmy * vantage * 0.05 * maxVantageMult
   let autoDmg = baseStrikeDps * (gemBonuses.idleDamageMult ?? 1)
