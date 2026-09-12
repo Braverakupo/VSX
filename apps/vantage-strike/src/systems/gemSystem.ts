@@ -19,10 +19,13 @@ function canUseGem(gem: Gem | null | undefined, heroName: string): boolean {
 /**
  * Roll random modifiers for a gem based on its tier.
  * Every gem gets:
+ * Completion bonuses are slot-1 only: the guaranteed Completion/s stat is the sole
+ * completion-type modifier a gem can carry. Completion-type entries are excluded from
+ * the pool that rolls on the remaining slots, so one is never re-rolled elsewhere.
  *   1. Guaranteed 1st: Completion/s — random stat target, random value 0.01-0.05
- *   2. Guaranteed 2 more standard buffs (random from pool excluding legendary)
+ *   2. Guaranteed 2 more standard buffs (random from pool excluding legendary + completion)
  *   3. Chance rolls for 4th (80%), 5th (50%), 6th (25%) — random standard buffs, stops on first failure
- *   4. Separate 5% chance each for legendary 7th-slot: vantageCapBoost, statPerCompletion
+ *   4. 5% chance legendary 7th-slot: vantageCapBoost
  */
 export function rollModifiers(gem: { tier: number }): GemModifier[] {
   const rolled: GemModifier[] = []
