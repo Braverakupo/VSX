@@ -1,7 +1,7 @@
 // src/systems/rebirthSystem.ts
 // Pure rebirth logic. No Vue imports.
 
-import { ALL_GEMS, GEMS_PER_COLOR, CHAR_GEM_COLOR, localImages } from '../config/gameData'
+import { ALL_GEMS, CHAR_GEM_COLOR, localImages } from '../config/gameData'
 import { GemEntity } from '../entities/GemEntity'
 import { ObjectiveEntity } from '../entities/ObjectiveEntity'
 import { computeGemForceGain } from './combatSystem'
@@ -62,17 +62,14 @@ export function processRebirth(
       tier: rolledTier,
       classId,
       dmg: scaledDmg,
-      modifiers: rollModifiers({ tier: rolledTier })
+      modifiers: rollModifiers({ tier: rolledTier }),
+      owner: hero.name  // rebirth gems are bound to this character only
     })
-    // Auto-equip to this character while slots remain; excess goes to the Bag.
-    const filledSlots = hero.gemSlots.filter((s): s is string => s !== null).length
-    if (filledSlots < GEMS_PER_COLOR) {
-      hero.inventory.addGem(gemAwarded)
-      const emptyIdx = hero.gemSlots.indexOf(null)
-      if (emptyIdx !== -1) hero.gemSlots[emptyIdx] = gemAwarded.id
-    } else {
-      gameState.collectedGems.addGem(gemAwarded)  // global Bag
-    }
+    // Bound gems never enter the shared Bag: they go straight into this hero's
+    // personal inventory, auto-equipping into a free slot if one exists.
+    hero.inventory.addGem(gemAwarded)
+    const emptyIdx = hero.gemSlots.indexOf(null)
+    if (emptyIdx !== -1) hero.gemSlots[emptyIdx] = gemAwarded.id
   }
 
   // Create new objective

@@ -23,6 +23,7 @@ export interface GemOptions {
   classId?: string | null
   cd?: number
   dmg?: number
+  owner?: string | null
   modifiers?: GemModifier[]
 }
 
@@ -38,6 +39,7 @@ export interface GemJSON {
   classId?: string | null
   cd?: number
   dmg?: number
+  owner?: string | null
   modifiers?: GemModifier[]
 }
 
@@ -52,6 +54,8 @@ export class GemEntity {
   classId: string | null
   cd: number
   dmg: number
+  /** Owning character name. Locked gems can only be equipped by this hero; null = legacy/unowned. */
+  owner: string | null
   /** Rolled modifiers (read-only surface — gems are never mutated in place). */
   modifiers: readonly GemModifier[]
 
@@ -70,6 +74,7 @@ export class GemEntity {
     this.classId = options.classId || null
     this.cd = options.cd ?? Math.max(0.5, 3 - (this.tier - 1) * 0.3)
     this.dmg = options.dmg ?? this.level * 5
+    this.owner = options.owner || null
     this.modifiers = options.modifiers || []
   }
 
@@ -100,6 +105,7 @@ export class GemEntity {
       classId: this.classId,
       cd: this.cd,
       dmg: this.dmg,
+      owner: this.owner,
       modifiers: this.modifiers ? [...this.modifiers] : []
     }
   }
@@ -115,6 +121,7 @@ export class GemEntity {
       classId: data.classId || null,
       cd: data.cd,
       dmg: data.dmg,
+      owner: data.owner || null,
       modifiers: data.modifiers || []
     })
   }

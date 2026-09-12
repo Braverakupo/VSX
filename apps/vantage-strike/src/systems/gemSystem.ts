@@ -9,6 +9,14 @@ import type { Gem, GemInventory, GemModifier, HeroRegistry } from './combatSyste
 const STATS = ['Str', 'Spi', 'Int', 'Con', 'Dex']
 
 /**
+ * Owner-lock rule: an owned gem may only be equipped/used by its owning
+ * character. Legacy gems without an owner remain free to use anywhere.
+ */
+function canUseGem(gem: Gem | null | undefined, heroName: string): boolean {
+  return !gem || !gem.owner || gem.owner === heroName
+}
+
+/**
  * Roll random modifiers for a gem based on its tier.
  * Every gem gets:
  *   1. Guaranteed 1st: Completion/s — random stat target, random value 0.01-0.05
@@ -164,7 +172,7 @@ export function autoEquipGems(heroRegistry: HeroRegistry, collectedGems: GemInve
     }
 
     const availableGems = collectedGems.getAll()
-      .filter(g => g.color === color && !equippedIds.has(g.id))
+      .filter(g => g.color === color && !equippedIds.has(g.id) && canUseGem(g, heroName))
 
     for (let i = 0; i < hero.gemSlots.length && availableGems.length > 0; i++) {
       if (!hero.gemSlots[i]) {
@@ -232,6 +240,7 @@ export function equipGem(heroName: string, slotIndex: number, gemId: string, her
   if (!hero) return false
   const gem = hero.inventory.getGem(gemId)
   if (!gem) return false
+  if (!canUseGem(gem, heroName)) return false
 
   const existingIdx = hero.gemSlots.indexOf(gemId)
   if (existingIdx !== -1) {
@@ -260,6 +269,7 @@ export function equipGemFromBag(
   if (slotIndex < 0 || slotIndex >= hero.gemSlots.length) return false
   const gem = collectedGems.getGem(gemId)
   if (!gem) return false
+  if (!canUseGem(gem, heroName)) return false
 
   const occupantId = hero.gemSlots[slotIndex]
   if (occupantId) {
@@ -343,8 +353,14 @@ export function moveEquippedGem(
 
   // Cross-hero: move the selected gem into the target hero's inventory,
   // and (if any) the occupant back into the source hero's inventory.
+  // Owner-locked gems may never end up on a different character.
   const gem = from.inventory.getGem(gemId)
   if (!gem) return false
+  if (!canUseGem(gem, toHero)) return false
+  if (occupantId) {
+    const occupant = to.inventory.getGem(occupantId)
+    if (occupant && !canUseGem(occupant, fromHero)) return false
+  }
   from.inventory.removeGem(gemId)
   to.inventory.addGem(gem)
   if (occupantId) {
@@ -366,6 +382,12 @@ export function moveGem(fromHero: string, fromSlot: number, toHero: string, toSl
   const from = heroRegistry[fromHero]
   const to = heroRegistry[toHero]
   if (!from || !to) return false
+  // Owner lock: an owned gem can never be swapped onto another character.
+  if (fromHero !== toHero) {
+    const a = from.gemSlots[fromSlot] ? from.inventory.getGem(from.gemSlots[fromSlot]!) : null
+    const b = to.gemSlots[toSlot] ? to.inventory.getGem(to.gemSlots[toSlot]!) : null
+    if (!canUseGem(a, toHero) || !canUseGem(b, fromHero)) return false
+  }
   const temp = from.gemSlots[fromSlot]
   from.gemSlots[fromSlot] = to.gemSlots[toSlot]
   to.gemSlots[toSlot] = temp

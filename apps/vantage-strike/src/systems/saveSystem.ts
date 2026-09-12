@@ -170,6 +170,17 @@ export async function loadGame(gameState: GameState, heroRegistry: HeroRegistry)
       })
     }
 
+    // Gem owner lock migration: any legacy gem sitting in a hero's personal
+    // inventory becomes bound to that hero. New gems are bound at roll time,
+    // so this only affects saves made before ownership existed.
+    charTemplates.forEach(name => {
+      const hero = heroRegistry[name]
+      if (!hero || !hero.inventory) return
+      for (const gem of hero.inventory.getAll()) {
+        if (!gem.owner) gem.owner = name
+      }
+    })
+
     // Restore objectives
     if (gameData.objectives) {
       gameState.objectives.splice(0, gameState.objectives.length)

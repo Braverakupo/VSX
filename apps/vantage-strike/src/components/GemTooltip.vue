@@ -255,6 +255,9 @@ const scalingInfo = computed<{ label: string } | null>(() => {
 /** Display name (null-safe accessor for the template). */
 const displayName = computed(() => displayGem.value?.name ?? '')
 
+/** Owning character for lock display (null = legacy unowned gem). */
+const boundTo = computed(() => displayGem.value?.owner || null)
+
 const adjustedStyle = computed<CSSProperties>(() => {
   if (!visible.value) return { display: 'none' }
   return {
@@ -279,6 +282,7 @@ const adjustedStyle = computed<CSSProperties>(() => {
     >
       <!-- Class Name -->
       <div class="tt-name" :style="{ color: rarityColor }">{{ displayName }}</div>
+      <div v-if="boundTo" class="tt-bound">&#128274; Bound to {{ boundTo }}</div>
 
       <!-- ── Unified Passives Block (class passives + rolled modifiers) ── -->
       <div v-if="allPassives.length > 0" class="tt-passives-block">
@@ -327,6 +331,7 @@ const adjustedStyle = computed<CSSProperties>(() => {
   >
     <!-- Class Name -->
     <div class="tt-name" :style="{ color: rarityColor }">{{ displayName }}</div>
+    <div v-if="boundTo" class="tt-bound">&#128274; Bound to {{ boundTo }}</div>
 
     <!-- ── Unified Passives Block ── -->
     <div v-if="allPassives.length > 0" class="tt-passives-block">
@@ -442,6 +447,15 @@ const adjustedStyle = computed<CSSProperties>(() => {
   font-weight: 600;
   margin-left: auto;
   padding-left: 8px;
+}
+
+/* ── Owner lock ── */
+.tt-bound {
+  font-size: 9px;
+  color: #f59e0b;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
 }
 
 /* ── DPS Metrics ── */

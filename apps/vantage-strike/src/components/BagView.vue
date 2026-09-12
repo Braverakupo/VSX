@@ -135,6 +135,7 @@ function placeInSlot(heroName: string, slotIndex: number): void {
           @mousemove="updatePosition($event.clientX, $event.clientY)"
         >
           <GemItem :gem="gem" :color="gemDot(gem.color)" />
+          <span v-if="gem.owner" class="bag-gem-lock" :title="'Bound to ' + gem.owner">&#128274;</span>
         </div>
         <!-- empty placeholder cells up to 40 (park selected equipped gem here) -->
         <div
@@ -252,6 +253,7 @@ function placeInSlot(heroName: string, slotIndex: number): void {
 }
 
 .bag-gem-cell {
+  position: relative;
   aspect-ratio: 1;
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid var(--z-border-default, rgba(168, 85, 247, 0.3));
@@ -300,6 +302,19 @@ function placeInSlot(heroName: string, slotIndex: number): void {
 
 .bag-gem-cell:hover {
   outline: 1px solid var(--z-text-muted, #94a3b8);
+}
+
+/* Owner-locked gem badge (bound to a specific character) */
+.bag-gem-lock {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  font-size: 7px;
+  line-height: 1;
+  color: #f59e0b;
+  text-shadow: 0 0 4px rgba(245, 158, 11, 0.7);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .bag-slot-idx {
