@@ -19,13 +19,16 @@ function canUseGem(gem: Gem | null | undefined, heroName: string): boolean {
 /**
  * Roll random modifiers for a gem based on its tier.
  * Every gem gets:
- * Completion bonuses are slot-1 only: the guaranteed Completion/s stat is the sole
- * completion-type modifier a gem can carry. Completion-type entries are excluded from
- * the pool that rolls on the remaining slots, so one is never re-rolled elsewhere.
  *   1. Guaranteed 1st: Completion/s — random stat target, random value 0.01-0.05
- *   2. Guaranteed 2 more standard buffs (random from pool excluding legendary + completion)
- *   3. Chance rolls for 4th (80%), 5th (50%), 6th (25%) — random standard buffs, stops on first failure
- *   4. 5% chance legendary 7th-slot: vantageCapBoost
+ *   2. Slots 2-6: standard buffs from STANDARD_BUFF_TYPES with descending chances
+ *      (90% / 80% / 65% / 50% / 35%), stopping on first failure — slots 2-3 stay above 50%
+ *   3. 5% chance legendary 7th-slot: vantageCapBoost
+ * The completionStat slot-1 modifier is never part of the standard pool, so it can't be
+ * re-rolled elsewhere. The pool covers damageMult, preferredStatBonus, statPerCompletion
+ * (Mystic Aura) plus tier-scaled utility/crit affixes (vantageAutoRate, critDamage,
+ * doubleCrit, idleDamageMult) — every type the combat engine consumes, so all rolls apply
+ * in gameplay. Values come from GEM_MODIFIER_DEFS (base + (tier-1) * perTier), except
+ * preferredStatBonus which rolls discrete .05-.09.
  */
 export function rollModifiers(gem: { tier: number }): GemModifier[] {
   const rolled: GemModifier[] = []
@@ -51,15 +54,11 @@ export function rollModifiers(gem: { tier: number }): GemModifier[] {
     return { type, value: Math.round(value * 10000) / 10000 }
   }
 
-  // ── 2. Guaranteed 2 standard buffs (slots 2-3) ──
-  for (let i = 0; i < 2; i++) {
-    const buff = rollStandardBuff()
-    if (buff) rolled.push(buff)
-  }
-
-  // ── 3. Chance rolls for 4th, 5th, 6th (stops on first failure) ──
-  const extraChances = [0.8, 0.5, 0.25]
-  for (const chance of extraChances) {
+  // ── 2. Slots 2-6: descending chance chain (stops on first failure) ──
+  // Slot 1 is the only guaranteed roll; every standard slot carries a %
+  // scaling rate. Slots 2-3 are deliberately above 50%.
+  const standardChances = [0.9, 0.8, 0.65, 0.5, 0.35]
+  for (const chance of standardChances) {
     if (Math.random() < chance) {
       const buff = rollStandardBuff()
       if (buff) rolled.push(buff)
@@ -68,7 +67,7 @@ export function rollModifiers(gem: { tier: number }): GemModifier[] {
     }
   }
 
-  // ── 4. Legendary 7th slot: vantageCapBoost (5% chance) ──
+  // ── 3. Legendary 7th slot: vantageCapBoost (5% chance) ──
   if (Math.random() < 0.05) {
     const value = Math.floor(Math.random() * 6) + 5
     rolled.push({ type: 'vantageCapBoost', value })

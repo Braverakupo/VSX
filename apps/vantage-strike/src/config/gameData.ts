@@ -232,7 +232,8 @@ export const classDefinitions: ClassDefinition[] = [
 
 /**
  * Gem modifier definitions — rollable affixes on gems.
- * Each gem can roll 0-2 of these modifiers at random on creation.
+ * Slot 1 is always completionStat (targeted per-stat gain), slots 2-6 roll
+ * from STANDARD_BUFF_TYPES, and vantageCapBoost is a 5% legendary 7th slot.
  * Values are tier-scaled using the `perTier` step.
  *
  * Special rules:
@@ -280,10 +281,53 @@ export const GEM_MODIFIER_DEFS: Record<string, GemModifierDef> = {
     maxTier: 5,
     cssClass: null,
     format: (val) => `+${(val * 100).toFixed(0)}% preferred stat`
+  },
+  // ── Tier-scaled utility / crit affixes ──
+  // Every type here is consumed by combatSystem / useGameLoop, so rolled gems
+  // apply these in real gameplay. Values are kept modest vs. class passives.
+  vantageAutoRate: {
+    label: 'Vantage Speed',
+    base: 0.05,
+    perTier: 0.01,
+    maxTier: 5,
+    cssClass: null,
+    format: (val) => `+${(val * 100).toFixed(0)}% /s`
+  },
+  critDamage: {
+    label: 'Crit Dmg',
+    base: 0.01,
+    perTier: 0.005,
+    maxTier: 5,
+    cssClass: null,
+    format: (val) => `+${(val * 100).toFixed(1)}%`
+  },
+  doubleCrit: {
+    label: 'Dbl Crit',
+    base: 0.05,
+    perTier: 0.025,
+    maxTier: 5,
+    cssClass: null,
+    format: (val) => `x${(1 + val).toFixed(2)}`
+  },
+  idleDamageMult: {
+    label: 'Idle Dmg',
+    base: 0.05,
+    perTier: 0.02,
+    maxTier: 5,
+    cssClass: null,
+    format: (val) => `+${(val * 100).toFixed(0)}%`
   }
 }
 
-export const STANDARD_BUFF_TYPES: string[] = ['damageMult', 'preferredStatBonus']
+/**
+ * Standard buff pool rolled into gem modifier slots 2-6.
+ * completionStat (slot 1) and vantageCapBoost (5% legendary 7th slot) are
+ * handled separately and never appear in this pool.
+ */
+export const STANDARD_BUFF_TYPES: string[] = [
+  'damageMult', 'preferredStatBonus', 'statPerCompletion',
+  'vantageAutoRate', 'critDamage', 'doubleCrit', 'idleDamageMult'
+]
 
 // Re-export as abilityDefinitions for backward compatibility
 export const abilityDefinitions = classDefinitions;

@@ -193,7 +193,7 @@ const passiveEntries = computed(() => {
   return entries
 })
 
-/** Display rolled gem modifiers (damageMult, completionStat, vantageCapBoost, Mystic Aura). Mystic Aura always sorts to bottom. */
+/** Display rolled gem modifiers (completionStat, damageMult, preferredStatBonus, Mystic Aura, and the tier-scaled utility/crit/econ affixes). Mystic Aura always sorts to bottom. */
 const modifierEntries = computed(() => {
   const g = displayGem.value
   if (!g || !g.modifiers || g.modifiers.length === 0) return []
